@@ -2,7 +2,7 @@
     <div>
 
     </div>
-    <router-view class="lg:px-32"></router-view>
+    <router-view class=""></router-view>
 </template>
 
 <script>

@@ -11,10 +11,11 @@
   "dependencies": {
     "@tailwindcss/vite": "^4.1.6",
     "axios": "^1.9.0",
+    "do_an_3": "file:",
+    "FE": "file:",
     "flowbite": "^3.1.2",
     "tailwindcss": "^4.1.6",
     "vue": "^3.5.13",
-    "FE": "file:",
     "vue-router": "^4.5.1"
   },
   "devDependencies": {
