@@ -1,7 +1,7 @@
 PHẦN FRONT-END
 *** AUTH(đăng kí - đăng nhập) ***
 * Đăng kí
-    - API để gửi form đăng kí: 'http://localhost:3000/user/auth/login'
+    - API để gửi form đăng kí: 'http://localhost:3000/user/auth/register'
     - Các dữ liệu sẽ gửi: {phone, email, password}
     - Dữ liệu muốn nhận được: {status}
 * Đăng nhập
