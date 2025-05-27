@@ -5,13 +5,22 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 
 //dùng route để xác định layout của trang
 const route = useRoute()
 const layout = computed(() => {
     return route.meta.layout || 'MainLayout'
+})
+
+onMounted(() => {
+    
+
+    // Khởi tạo Flowbite sau khi component được mount
+    nextTick(() => {
+        initFlowbite();
+    })
 })
 </script>
 
