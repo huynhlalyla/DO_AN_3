@@ -135,14 +135,10 @@ onMounted(() => {
   const countIncome = transactionsData.value.reduce((total, transaction) => {
     return transaction.type === "income" ? total + 1 : total;
   }, 0);
-  console.log(countExpense, countIncome);
-  const expensePercentage = ((countExpense / transactionsData.value.length) * 100).toFixed(1);
-  const incomePercentage = ((countIncome / transactionsData.value.length) * 100).toFixed(1);
-  console.log(expensePercentage, incomePercentage);
 
 const getChartOptions = () => {
   return {
-    series: [parseFloat(expensePercentage), parseFloat(incomePercentage)],
+    series: [countExpense, countIncome],
     colors: ["#1C64F2", "#16BDCA"],
     chart: {
       height: 420,
@@ -178,14 +174,14 @@ const getChartOptions = () => {
     yaxis: {
       labels: {
         formatter: function (value) {
-          return value + "%"
+          return value
         },
       },
     },
     xaxis: {
       labels: {
         formatter: function (value) {
-          return value  + "%"
+          return value
         },
       },
       axisTicks: {
