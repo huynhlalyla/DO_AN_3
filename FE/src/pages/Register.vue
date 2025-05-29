@@ -178,43 +178,42 @@
 </template>
 
 <script setup>
-import {ref, onMounted} from 'vue'
-import {useRouter} from 'vue-router'
+import {ref}                                    from    'vue'
+import {useRouter}                              from    'vue-router'
 
-const inputPhone = ref('');
-const inputEmail = ref('');
-const inputPassword = ref('');
-const inputConfirmPassword = ref('');
+const inputPhone                                =       ref('');
+const inputEmail                                =       ref('');
+const inputPassword                             =       ref('');
+const inputConfirmPassword                      =       ref('');
+const inputPhoneMessage                         =       ref('');
+const inputEmailMessage                         =       ref('');
+const inputPasswordMessage                      =       ref('');
+const inputConfirmPasswordMessage               =       ref('');
 
-const inputPhoneMessage = ref('');
-const inputEmailMessage = ref('');
-const inputPasswordMessage = ref('');
-const inputConfirmPasswordMessage = ref('');
+const showPassword                              =       ref(false);
 
-const showPassword = ref(false);
-
-const checkFormData = () => {
+const checkFormData                             =       () => {
     if(!inputPhone.value) {
-        inputPhoneMessage.value = 'Số điện thoại không được để trống';
+        inputPhoneMessage.value                 =       'Số điện thoại không được để trống';
     } else {
-        inputPhoneMessage.value = '';
+        inputPhoneMessage.value                 =       '';
     }
     if(!inputPassword.value) {
-        inputPasswordMessage.value = 'Mât khẩu không được để trống';
+        inputPasswordMessage.value              =       'Mât khẩu không được để trống';
     } else {
-        inputPasswordMessage.value = '';
+        inputPasswordMessage.value              =       '';
     }
     if(!inputEmail.value) {
-        inputEmailMessage.value = 'Email không được để trống';
+        inputEmailMessage.value                 =       'Email không được để trống';
     } else {
-        inputEmailMessage.value = '';
+        inputEmailMessage.value                 =       '';
     }
     if(!inputConfirmPassword.value) {
-        inputConfirmPasswordMessage.value = 'Phần này không được để trống';
-    } else if(inputConfirmPassword.value !== inputPassword.value) {
-        inputConfirmPasswordMessage.value = 'Mật khẩu không khớp';
+        inputConfirmPasswordMessage.value       =       'Phần này không được để trống';
+    } else if(inputConfirmPassword.value        !==     inputPassword.value) {
+        inputConfirmPasswordMessage.value       =       'Mật khẩu không khớp';
     } else {
-        inputConfirmPasswordMessage.value = '';
+        inputConfirmPasswordMessage.value       =       '';
     }
 
     return !inputPhoneMessage.value && 
@@ -226,58 +225,58 @@ const checkFormData = () => {
 const checkPhoneData = () => {
     const phoneRegex = /^(0[3|5|7|8|9])+([0-9]{8})\b/;
     if(!inputPhone.value) {
-        inputPhoneMessage.value = 'Số điện thoại không được để trống';
+        inputPhoneMessage.value                 =       'Số điện thoại không được để trống';
     } else if(!phoneRegex.test(inputPhone.value)) {
-        inputPhoneMessage.value = 'Số điện thoại không đúng định dạng';
+        inputPhoneMessage.value                 =       'Số điện thoại không đúng định dạng';
     } else if(inputPhone.value.length < 10 || inputPhone.value.length > 11) {
-        inputPhoneMessage.value = 'Số điện thoại không đúng định dạng';
+        inputPhoneMessage.value                 =       'Số điện thoại không đúng định dạng';
     } else {
-        inputPhoneMessage.value = '';
+        inputPhoneMessage.value                 =       '';
     }
 }
-const checkPassworData = () => {
-    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+const checkPassworData                          =       () => {
+    const passwordRegex                         =       /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
     if(!inputPassword.value) {
-        inputPasswordMessage.value = 'Mât khẩu không được để trống';
+        inputPasswordMessage.value              =       'Mât khẩu không được để trống';
     } else if(!passwordRegex.test(inputPassword.value)) {
-        inputPasswordMessage.value = 'Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ cái và số';
+        inputPasswordMessage.value              =       'Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ cái và số';
     } else {
-        inputPasswordMessage.value = '';
+        inputPasswordMessage.value              =       '';
     }
 }
-const checkEmailData = () => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const checkEmailData                            =       () => {
+    const emailRegex                            =       /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if(!inputEmail.value) {
-        inputEmailMessage.value = 'Email không được để trống';
+        inputEmailMessage.value                 =       'Email không được để trống';
     } else if(!emailRegex.test(inputEmail.value)) {
-        inputEmailMessage.value = 'Email không đúng định dạng';
+        inputEmailMessage.value                 =       'Email không đúng định dạng';
     } else {
-        inputEmailMessage.value = '';
+        inputEmailMessage.value                 =       '';
     }
 }
-const checkConfirmPasswordData = () => {
+const checkConfirmPasswordData                  =       () => {
     if(!inputConfirmPassword.value) {
-        inputConfirmPasswordMessage.value = 'Phần này không được để trống';
-    } else if(inputConfirmPassword.value !== inputPassword.value) {
-        inputConfirmPasswordMessage.value = 'Mật khẩu không khớp';
+        inputConfirmPasswordMessage.value       =       'Phần này không được để trống';
+    } else if(inputConfirmPassword.value        !==     inputPassword.value) {
+        inputConfirmPasswordMessage.value       =       'Mật khẩu không khớp';
     } else {
-        inputConfirmPasswordMessage.value = '';
+        inputConfirmPasswordMessage.value       =       '';
     }
 }
 
-const registerform = async function() {
-    const isValid = checkFormData();
+const registerform                              =       async function() {
+    const isValid                               =       checkFormData();
     if(!isValid) {
         return;
     }
 
-    const data = {
-        phone: inputPhone.value,
-        email: inputEmail.value,
-        password: inputPassword.value,
+    const data                                  =       {
+        phone:                                          inputPhone.value,
+        email:                                          inputEmail.value,
+        password:                                       inputPassword.value,
     };
     try {
-        const response = await fetch('/user/auth/register', {
+        const response                          =       await fetch('/user/auth/register', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

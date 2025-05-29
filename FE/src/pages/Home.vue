@@ -61,7 +61,7 @@
               </tbody>
           </table>
       </div>
-
+     <DialOption />
 
 
     </div>
@@ -73,12 +73,16 @@
 <script setup>
 import {  onMounted, 
           ref 
-        }                       from   'vue';
-import ApexCharts               from   'apexcharts';
+        }                       from    'vue';
+import ApexCharts               from    'apexcharts';
+import { initFlowbite }         from    "flowbite";
+import DialOption               from    '../components/DialOption.vue';
 
 
 const transactionsData          =       ref([]);
 onMounted(() => {
+  // Khởi tạo Flowbite
+  initFlowbite();
   //giả bộ dữ liệu giao dịch
   transactionsData.value        =       [
     { type: "expense", amount: 100000, date: "2025-27-5", description: "Mua sắm", category: "Shopping" },
