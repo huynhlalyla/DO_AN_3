@@ -71,72 +71,34 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
-import ApexCharts from 'apexcharts';
+import {  onMounted, 
+          ref 
+        }                       from   'vue';
+import ApexCharts               from   'apexcharts';
 
 
-const transactionsData = ref([]);
+const transactionsData          =       ref([]);
 onMounted(() => {
   //giả bộ dữ liệu giao dịch
-  transactionsData.value = [
-    {
-      type: "expense",
-      amount: 100000,
-      date: "2025-27-5",
-      description: "Mua sắm",
-      category: "Shopping",      
-    },
-    {
-      type: "income",
-      amount: 200000,
-      date: "2025-28-5",
-      description: "Lương tháng 5",
-      category: "Salary",
-    },
-    {
-      type: "expense",
-      amount: 50000,
-      date: "2025-29-5",
-      description: "Ăn uống",
-      category: "Food",
-    },
-    {
-      type: "income",
-      amount: 150000,
-      date: "2025-30-5",
-      description: "Tiền thưởng",
-      category: "Bonus",
-    },
-    {
-      type: "expense",
-      amount: 30000,
-      date: "2025-31-5",
-      description: "Đi lại",
-      category: "Transport",
-    },
-    {
-      type: "income",
-      amount: 120000,
-      date: "2025-01-6",
-      description: "Lương tháng 6",
-      category: "Salary",
-    },
-    {
-      type: "expense",
-      amount: 80000,
-      date: "2025-02-6",
-      description: "Giải trí",
-      category: "Entertainment",
-    },
+  transactionsData.value        =       [
+    { type: "expense", amount: 100000, date: "2025-27-5", description: "Mua sắm", category: "Shopping" },
+    { type: "income", amount: 200000, date: "2025-28-5", description: "Lương tháng 5", category: "Salary" },
+    { type: "expense", amount: 50000, date: "2025-29-5", description: "Ăn uống", category: "Food" },
+    { type: "income", amount: 150000, date: "2025-30-5", description: "Tiền thưởng", category: "Bonus" },
+    { type: "expense", amount: 30000, date: "2025-31-5", description: "Đi lại", category: "Transport" },
+    { type: "income", amount: 120000, date: "2025-01-6", description: "Lương tháng 6", category: "Salary" },
+    { type: "expense", amount: 80000, date: "2025-02-6", description: "Giải trí", category: "Entertainment" },
   ]
-  const countExpense = transactionsData.value.reduce((total, transaction) => {
-    return transaction.type === "expense" ? total + 1 : total;
+
+
+  const countExpense            =       transactionsData.value.reduce((total, transaction) => {
+    return transaction.type     ===     "expense" ? total + 1 : total;
   }, 0);
-  const countIncome = transactionsData.value.reduce((total, transaction) => {
-    return transaction.type === "income" ? total + 1 : total;
+  const countIncome             =       transactionsData.value.reduce((total, transaction) => {
+    return transaction.type     ===     "income" ? total + 1 : total;
   }, 0);
 
-const getChartOptions = () => {
+const getChartOptions           =       () => {
   return {
     series: [countExpense, countIncome],
     colors: ["#1C64F2", "#16BDCA"],
@@ -195,7 +157,7 @@ const getChartOptions = () => {
 }
 
 if (document.getElementById("pie-chart") && typeof ApexCharts !== 'undefined') {
-  const chart = new ApexCharts(document.getElementById("pie-chart"), getChartOptions());
+  const chart                   =       new ApexCharts(document.getElementById("pie-chart"), getChartOptions());
   chart.render();
 }
 
