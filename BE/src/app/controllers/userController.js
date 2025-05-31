@@ -16,17 +16,26 @@ const addUser = async (req, res) => {
     }
 };
 
+const getAllUsers = async (req, res) => {
+    try {
+        const users = await Users.find({});
+        return res.status(200).json({ status: 200, users });
+    } catch (error) {
+        return res.status(400).json({ status: 400 });
+    }
+}
+
 // Xác thực người dùng
 //POST /users/authenticate
 const authenticateUser = async (req, res) => {
     try {
         const data = req.body;
-        const user = await Users.findOne({ phone: data.sdt });
+        const user = await Users.findOne({ phone: data.phone });
 
         if (user && user.password === data.password) {
-            res.status(200).json({ status: 200, userData: user });
+            return res.json({ status: 200, userData: user });
         } else {
-            res.status(400).json({ status: 400 });
+            return res.json({ status: 400 });
         }
     } catch (error) {
         res.status(400).json({ status: 400 });
@@ -42,13 +51,18 @@ const registerUser = async (req, res) => {
             $or: [{ phone }, { email }]
         });
         // Nếu đã tồn tại, trả về status 400
+        //kiểm tra cụ thể email hay phone đã tồn tại
         if (existingUser) {
-            return res.status(400).json({ status: 400 });
+            if (existingUser.phone === phone) {
+                return res.json({ status: 400, message: 'Số điện thoại đã tồn tại!' });
+            } else if (existingUser.email === email) {
+                return res.json({ status: 400, message: 'Email đã tồn tại' });
+            }
         }
         // Nếu chưa tồn tại, tạo người dùng mới
         const newUser = new Users({ phone, email, password });
         await newUser.save();
-        return res.status(200).json({ status: 200 });
+        return res.json({ status: 200 });
     } catch (error) {
         return res.status(400).json({ status: 400 });
     }
@@ -60,9 +74,13 @@ const loginUser = async (req, res) => {
         const { phone, password } = req.body;
         // Tìm người dùng theo số điện thoại
         const user = await Users.findOne({ phone });
+        //nếu không tìm thấy thì báo chưa đăng kí
+        if (!user) {
+            return res.json({ status: 400, message: 'Số điện thoại chưa đăng ký!' });
+        }
         // Nếu không tìm thấy user hoặc mật khẩu không đúng
-        if (!user || user.password !== password) {
-            return res.status(400).json({ status: 400 });
+        if (user.password !== password) {
+            return res.json({ status: 400, message: 'Mật khẩu không đúng!' });
         }
         // Đăng nhập thành công, trả về dữ liệu người dùng
         return res.status(200).json({
@@ -75,7 +93,8 @@ const loginUser = async (req, res) => {
         });
     } catch (error) {
         // Bất kỳ lỗi nào cũng trả về status 400
-        return res.status(400).json({ status: 400 });
+        // return res.status(400).json({ status: 400 });
+        console.error('Error during login:', error);
     }
 };
 
@@ -85,4 +104,5 @@ module.exports = {
     authenticateUser, 
     registerUser, 
     loginUser,
+    getAllUsers
 };

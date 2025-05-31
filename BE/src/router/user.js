@@ -3,9 +3,12 @@ const router = express.Router();
 
 const userController = require('../app/controllers/userController');
 
-router.get('/add', userController.addUser);
 router.post('/authenticate', userController.authenticateUser);
-router.post('/register',userController.registerUser);
-router.post('/login', userController.loginUser);
+router.post('/auth/register',userController.registerUser);
+router.post('/auth/login', userController.loginUser);
+
+//them de test
+router.get('/add', userController.addUser);
+router.get('/getAll', userController.getAllUsers);
 
 module.exports = router;
