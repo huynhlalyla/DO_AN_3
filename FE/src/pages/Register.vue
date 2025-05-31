@@ -180,6 +180,7 @@
 <script setup>
 import {ref}                                    from    'vue'
 import {useRouter}                              from    'vue-router'
+import axios                                    from    'axios'
 
 const inputPhone                                =       ref('');
 const inputEmail                                =       ref('');
@@ -276,21 +277,31 @@ const registerform                              =       async function() {
         password:                                       inputPassword.value,
     };
     try {
-        const response                          =       await fetch('/user/auth/register', {
-            method: 'POST',
+        const response = await axios.post('http://localhost:3000/user/auth/register', data, {
             headers: {
                 'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
+            }
         });
-
-        const result = await response.json();
-        if(result.status === 200) {
-            //đăng kí thành công
-        } if(result.status === 400) {
-            //lỗi đăng kí
+        const result = response.data;
+        console.log('Registration result:', result);        if(result.status === 200) {
+            alert('Đăng ký thành công!');
+            // Chuyển hướng đến trang đăng nhập
+            router.push('/auth/login');
+        } else if(result.status === 400) {
+            // Hiển thị lỗi cụ thể từ server
+            if(result.message) {
+                if(result.message.includes('điện thoại')) {
+                    inputPhoneMessage.value = result.message;
+                } else if(result.message.includes('Email')) {
+                    inputEmailMessage.value = result.message;
+                } else {
+                    alert(`Lỗi: ${result.message}`);
+                }
+            } else {
+                alert('Lỗi đăng ký: Dữ liệu không hợp lệ');
+            }
         } else if(result.status === 500) {
-            //không có kết nối
+            alert('Lỗi kết nối máy chủ');
         }
     } catch (error) {
         console.error('Error during registration:', error);

@@ -47,8 +47,7 @@
                   neil.sims@flowbite.com
                 </p>
               </div>
-              <ul class="py-1" role="none">
-                <li>
+              <ul class="py-1" role="none">                <li>
                   <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white" role="menuitem">Dashboard</a>
                 </li>
                 <li>
@@ -58,7 +57,7 @@
                   <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white" role="menuitem">Earnings</a>
                 </li>
                 <li>
-                  <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white" role="menuitem">Sign out</a>
+                  <a @click="logout" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white cursor-pointer" role="menuitem">Đăng xuất</a>
                 </li>
               </ul>
             </div>
@@ -177,10 +176,11 @@ import { ref,
       computed
  }                          from  "vue";
 import {initFlowbite}       from  "flowbite";
-import {useRoute}           from  "vue-router";
+import {useRoute, useRouter}           from  "vue-router";
 import router from "../router";
 
 const route                 =     useRoute();
+const routerInstance        =     useRouter();
 const isHomePage            =     computed(() => route.path === "/");
 const isTransactions        =     computed(() => route.path === "/transactions");
 const isCategories          =     computed(() => route.path === "/categories");
@@ -212,6 +212,16 @@ const toggleDarkMode = () => {
     document.documentElement.classList.remove("dark");
     localStorage.setItem("theme", "light");
   }
+};
+
+// Hàm đăng xuất
+const logout = () => {
+  // Xóa thông tin đăng nhập khỏi localStorage
+  localStorage.removeItem('user');
+  localStorage.removeItem('isAuthenticated');
+  
+  // Chuyển hướng về trang đăng nhập
+  routerInstance.push('/auth/login');
 };
 
 </script>

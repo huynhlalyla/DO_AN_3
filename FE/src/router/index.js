@@ -128,4 +128,28 @@ const router = createRouter({
     routes,
 })
 
+// Kiểm tra trạng thái đăng nhập
+const isAuthenticated = () => {
+    const authStatus = localStorage.getItem('isAuthenticated');
+    const user = localStorage.getItem('user');
+    return authStatus === 'true' && user;
+}
+
+// Navigation guard để kiểm tra authentication
+router.beforeEach((to, from, next) => {
+    // Kiểm tra xem route có yêu cầu authentication không
+    const requiresAuth = to.matched.some(page => page.meta.requiresAuth);
+    
+    if (requiresAuth && !isAuthenticated()) {
+        // Nếu cần đăng nhập nhưng chưa đăng nhập, chuyển hướng đến trang login
+        next('/auth/login');
+    } else if (!requiresAuth && isAuthenticated() && (to.path === '/auth/login' || to.path === '/auth/register')) {
+        // Nếu đã đăng nhập và đang cố truy cập trang login/register, chuyển về trang chủ
+        next('/');
+    } else {
+        // Cho phép tiếp tục
+        next();
+    }
+});
+
 export default router

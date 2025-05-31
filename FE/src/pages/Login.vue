@@ -108,7 +108,9 @@ import {
         onMounted
         }                               from   'vue'
 import {useRouter}                      from   'vue-router'
+import axios                            from    'axios'
 
+const router = useRouter();
 const inputPhone                        =       ref('')
 const inputPassword                     =       ref('')
 const inputPhoneMessage                 =       ref('');
@@ -163,24 +165,41 @@ const loginForm                         =       async () => {
         phone:                                  inputPhone.value,
         password:                               inputPassword.value
     }
-    try {
-        const response = await fetch('http://localhost:3000/user/auth/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-        })
-        const result = await response.json();
+    console.log(data);    try {
+        const response                  =       await axios.post('http://localhost:3000/user/auth/login', data);
+        const result                    =       response.data;
+        console.log(result);
         if(result.status === 200) {
-            //đăng nhập thành công
-        } if(result.status === 400) {
-            //lỗi đăng nhập
+            // Đăng nhập thành công - lưu thông tin user vào localStorage
+            localStorage.setItem('user', JSON.stringify(result.userData));
+            localStorage.setItem('isAuthenticated', 'true');
+            
+            // Chuyển hướng về trang chủ
+            router.push('/');
+            
+        } else if(result.status === 400) {
+            // Lỗi đăng nhập - hiển thị thông báo lỗi
+            if(result.message) {
+                if(result.message.includes('điện thoại')) {
+                    inputPhoneMessage.value = result.message;
+                } else if(result.message.includes('mật khẩu')) {
+                    inputPasswordMessage.value = result.message;
+                } else {
+                    alert(result.message);
+                }
+            } else {
+                alert('Số điện thoại hoặc mật khẩu không đúng');
+            }
         } else if(result.status === 500) {
-            //không có kết nối
+            alert('Lỗi kết nối máy chủ');
         }
     } catch(error) {
-        console.error(error);
+        console.error('Login error:', error);
+        if (error.response && error.response.data && error.response.data.message) {
+            alert(error.response.data.message);
+        } else {
+            alert('Không thể kết nối đến máy chủ');
+        }
     }
 }
 </script>
