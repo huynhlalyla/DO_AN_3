@@ -1,11 +1,83 @@
 <template>
+    
     <div class="pattern flex justify-center items-center w-full min-h-screen">
+       <!-- Toast Container với transition -->
+        <transition class="fixed top-10 right-10" name="toast" appear>
+            <div v-if="toast" class="w-full max-w-xs">                            <!-- Success Toast -->
+                <div 
+                    v-if="toast.type === 'success'"
+                    id="toast-success" 
+                    class="flex items-center w-full max-w-xs p-4 mb-4 text-gray-500 bg-white rounded-lg shadow-lg border-l-4 border-green-500 dark:text-gray-400 dark:bg-gray-800" 
+                    role="alert">
+                    <div class="inline-flex items-center justify-center shrink-0 w-8 h-8 text-green-500 bg-green-100 rounded-lg dark:bg-green-800 dark:text-green-200">
+                        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z"/>
+                        </svg>
+                    </div>
+                    <div class="ms-3 text-sm font-medium">{{ toast.message }}</div>
+                    <button 
+                        type="button" 
+                        @click="closeToast"
+                        class="ms-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex items-center justify-center h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700" 
+                        aria-label="Close">
+                        <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                        </svg>
+                    </button>
+                </div>                            <!-- Error Toast -->
+                <div
+                    v-if="toast.type === 'error'"
+                    id="toast-danger" 
+                    class="flex items-center w-full p-4 mb-4 text-gray-500 bg-white rounded-lg shadow-lg border-l-4 border-red-500 dark:text-gray-400 dark:bg-gray-800" 
+                    role="alert">
+                    <div class="inline-flex items-center justify-center shrink-0 w-8 h-8 text-red-500 bg-red-100 rounded-lg dark:bg-red-800 dark:text-red-200">
+                        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 11.793a1 1 0 1 1-1.414 1.414L10 11.414l-2.293 2.293a1 1 0 0 1-1.414-1.414L8.586 10 6.293 7.707a1 1 0 0 1 1.414-1.414L10 8.586l2.293-2.293a1 1 0 0 1 1.414 1.414L11.414 10l2.293 2.293Z"/>
+                        </svg>
+                    </div>
+                    <div class="ms-3 text-sm font-medium">{{ toast.message }}</div>
+                    <button 
+                        type="button" 
+                        @click="closeToast"
+                        class="ms-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex items-center justify-center h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700" 
+                        aria-label="Close">
+                        <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                        </svg>
+                    </button>
+                </div>                            <!-- Warning Toast -->
+                <div 
+                    v-if="toast.type === 'warn'"
+                    id="toast-warning" 
+                    class="flex items-center w-full p-4 mb-4 text-gray-500 bg-white rounded-lg shadow-lg border-l-4 border-orange-500 dark:text-gray-400 dark:bg-gray-800" 
+                    role="alert">
+                    <div class="inline-flex items-center justify-center shrink-0 w-8 h-8 text-orange-500 bg-orange-100 rounded-lg dark:bg-orange-700 dark:text-orange-200">
+                        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM10 15a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm1-4a1 1 0 0 1-2 0V6a1 1 0 0 1 2 0v5Z"/>
+                        </svg>
+                    </div>
+                    <div class="ms-3 text-sm font-medium">{{ toast.message }}</div>
+                    <button 
+                        type="button" 
+                        @click="closeToast"
+                        class="ms-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex items-center justify-center h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700" 
+                        aria-label="Close">
+                        <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </transition> 
+
+
         <transition
         name="fade"
         appear
         >
+        
             <div
-            class="bg-white flex flex-col justify-center items-center lg:p-28 p-6 shadow-md rounded-lg"
+            class="bg-white flex flex-col justify-center items-center lg:p-28 lg:py-12 p-6 shadow-md rounded-lg"
             id="register-form">
                 <h1 class="mb-4 text-xl font-extrabold text-gray-900 dark:text-white md:text-5xl lg:text-3xl"><span class="lg:text-4xl uppercase text-transparent bg-clip-text bg-gradient-to-r to-emerald-600 from-sky-400">Đăng kí</span> Tài khoản</h1>
                 <div class="w-full max-w-xs">
@@ -17,14 +89,14 @@
                         class="relative w-full my-2 flex items-center border-1 rounded-lg border-gray-300 appearance-none">
                         <input 
                             type="text" 
-                            id="floating_outlined" 
+                            id="phone_input" 
                             class="block px-2.5 pb-2.5 pt-4 w-full text-sm text-gray-900 bg-transparent  dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                             placeholder="" 
                             @focus="inputPhoneMessage = ''"
                             @blur="checkPhoneData()"
                             @input="inputPhone = $event.target.value"
                             />
-                        <label for="floating_outlined" class="absolute flex items-center text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white dark:bg-gray-900 px-2 peer-focus:px-2 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto start-1">
+                        <label for="phone_input" class="absolute flex items-center text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white dark:bg-gray-900 px-2 peer-focus:px-2 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto start-1">
                             <span class="">
                                 <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M7.978 4a2.553 2.553 0 0 0-1.926.877C4.233 6.7 3.699 8.751 4.153 10.814c.44 1.995 1.778 3.893 3.456 5.572 1.68 1.679 3.577 3.018 5.57 3.459 2.062.456 4.115-.073 5.94-1.885a2.556 2.556 0 0 0 .001-3.861l-1.21-1.21a2.689 2.689 0 0 0-3.802 0l-.617.618a.806.806 0 0 1-1.14 0l-1.854-1.855a.807.807 0 0 1 0-1.14l.618-.62a2.692 2.692 0 0 0 0-3.803l-1.21-1.211A2.555 2.555 0 0 0 7.978 4Z"/>
@@ -48,14 +120,14 @@
                         class="relative w-full my-2 flex items-center border-1 rounded-lg border-gray-300 appearance-none">
                         <input 
                             type="text" 
-                            id="floating_outlined" 
+                            id="email_input" 
                             class="block px-2.5 pb-2.5 pt-4 w-full text-sm text-gray-900 bg-transparent  dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                             placeholder="" 
                             @focus="inputEmailMessage = ''"
                             @blur="checkEmailData()"
                             @input="inputEmail = $event.target.value"
                             />
-                        <label for="floating_outlined" class="absolute flex items-center text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white dark:bg-gray-900 px-2 peer-focus:px-2 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto start-1">
+                        <label for="email_input" class="absolute flex items-center text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white dark:bg-gray-900 px-2 peer-focus:px-2 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto start-1">
                             <span class="">
                                 <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M17 6h-2V5h1a1 1 0 1 0 0-2h-2a1 1 0 0 0-1 1v2h-.541A5.965 5.965 0 0 1 14 10v4a1 1 0 1 1-2 0v-4c0-2.206-1.794-4-4-4-.075 0-.148.012-.22.028C7.686 6.022 7.596 6 7.5 6A4.505 4.505 0 0 0 3 10.5V16a1 1 0 0 0 1 1h7v3a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-3h5a1 1 0 0 0 1-1v-6c0-2.206-1.794-4-4-4Zm-9 8.5H7a1 1 0 1 1 0-2h1a1 1 0 1 1 0 2Z"/>
@@ -79,7 +151,7 @@
                         class="relative w-full my-2 flex items-center border-1 rounded-lg border-gray-300 appearance-none">                        
                         <input 
                             :type="showPassword ? 'text' : 'password'"
-                            id="floating_outlined" 
+                            id="password_input" 
                             class="block px-2.5 pb-2.5 pt-4 w-full text-sm text-gray-900 bg-transparent  dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                             placeholder="" 
                             @focus="inputPasswordMessage = ''"
@@ -99,7 +171,7 @@
                                 </svg>
 
                             </span>
-                        <label for="floating_outlined" class="absolute flex items-center text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white dark:bg-gray-900 px-2 peer-focus:px-2 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto start-1">
+                        <label for="password_input" class="absolute flex items-center text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white dark:bg-gray-900 px-2 peer-focus:px-2 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto start-1">
                             <span class="">
                                 <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
                                     <path fill-rule="evenodd" d="M8 10V7a4 4 0 1 1 8 0v3h1a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h1Zm2-3a2 2 0 1 1 4 0v3h-4V7Zm2 6a1 1 0 0 1 1 1v3a1 1 0 1 1-2 0v-3a1 1 0 0 1 1-1Z" clip-rule="evenodd"/>
@@ -123,7 +195,7 @@
                         class="relative w-full my-2 flex items-center border-1 rounded-lg border-gray-300 appearance-none">                        
                         <input 
                             :type="showPassword ? 'text' : 'password'"
-                            id="floating_outlined" 
+                            id="confirm_password_input" 
                             class="block px-2.5 pb-2.5 pt-4 w-full text-sm text-gray-900 bg-transparent  dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                             placeholder="" 
                             @focus="inputConfirmPasswordMessage = ''"
@@ -143,7 +215,7 @@
                                 </svg>
 
                             </span>
-                        <label for="floating_outlined" class="absolute flex items-center text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white dark:bg-gray-900 px-2 peer-focus:px-2 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto start-1">
+                        <label for="confirm_password_input" class="absolute flex items-center text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white dark:bg-gray-900 px-2 peer-focus:px-2 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto start-1">
                             <span class="">
                                 <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
                                     <path fill-rule="evenodd" d="M8 10V7a4 4 0 1 1 8 0v3h1a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h1Zm2-3a2 2 0 1 1 4 0v3h-4V7Zm2 6a1 1 0 0 1 1 1v3a1 1 0 1 1-2 0v-3a1 1 0 0 1 1-1Z" clip-rule="evenodd"/>
@@ -168,9 +240,9 @@
                 <div class="flex justify-between items-center w-full max-w-xs my-2 text-sm">
                     <!-- <span class="cursor-pointer hover:underline hover:text-blue-300"></span> -->
                     <router-link to="/auth/login" class="cursor-pointer hover:underline hover:text-blue-300">Đã có tài khoản? Đăng nhập</router-link>
-                </div>
-                <div class="border-t-1 border-gray-300 w-full my-2">
-
+                </div>                
+                <div class="border-t-1 py-4 border-gray-300 w-full my-2">
+                    
                 </div>
             </div>
         </transition>        
@@ -178,9 +250,10 @@
 </template>
 
 <script setup>
-import {ref}                                    from    'vue'
+import {ref, onMounted}                                    from    'vue'
 import {useRouter}                              from    'vue-router'
 import axios                                    from    'axios'
+import { initFlowbite } from 'flowbite';
 
 const inputPhone                                =       ref('');
 const inputEmail                                =       ref('');
@@ -191,7 +264,30 @@ const inputEmailMessage                         =       ref('');
 const inputPasswordMessage                      =       ref('');
 const inputConfirmPasswordMessage               =       ref('');
 
+const toast                                     =       ref(null);
+const router                                    =       useRouter();
+
 const showPassword                              =       ref(false);
+
+// Hàm đóng toast
+const closeToast = () => {
+    toast.value = null;
+};
+
+// Hàm hiển thị toast với auto-hide
+const showToast = (type, message, autoHide = true, duration = 3000) => {
+    toast.value = { type, message };
+    
+    if (autoHide) {
+        setTimeout(() => {
+            closeToast();
+        }, duration);
+    }
+};
+
+onMounted(() => {
+    initFlowbite();
+});
 
 const checkFormData                             =       () => {
     if(!inputPhone.value) {
@@ -283,11 +379,13 @@ const registerform                              =       async function() {
             }
         });
         const result = response.data;
-        console.log('Registration result:', result);        if(result.status === 200) {
-            alert('Đăng ký thành công!');
-            // Chuyển hướng đến trang đăng nhập
-            router.push('/auth/login');
-        } else if(result.status === 400) {
+        console.log('Registration result:', result);          if(result.type == 'success') {
+            showToast('success', result.message, true, 2000);
+            // Chuyển hướng đến trang đăng nhập sau 2 giây
+            setTimeout(() => {
+                router.push('/auth/login');
+            }, 2000);
+        } else if(result.type == 'warn') {
             // Hiển thị lỗi cụ thể từ server
             if(result.message) {
                 if(result.message.includes('điện thoại')) {
@@ -295,16 +393,18 @@ const registerform                              =       async function() {
                 } else if(result.message.includes('Email')) {
                     inputEmailMessage.value = result.message;
                 } else {
-                    alert(`Lỗi: ${result.message}`);
+                    showToast('warn', result.message);
                 }
             } else {
-                alert('Lỗi đăng ký: Dữ liệu không hợp lệ');
+                showToast('warn', 'Đã xảy ra lỗi, vui lòng thử lại sau.');
             }
-        } else if(result.status === 500) {
-            alert('Lỗi kết nối máy chủ');
-        }
-    } catch (error) {
-        console.error('Error during registration:', error);
+        } else if(result.type == 'error') {
+            showToast('error', result.message || 'Đã xảy ra lỗi, vui lòng thử lại sau.');
+        }    } catch (error) {
+        toast.value = {
+            type: 'error',
+            message: 'Đã xảy ra lỗi, vui lòng thử lại sau.'
+        };
     }
 }
 </script>
@@ -335,8 +435,7 @@ const registerform                              =       async function() {
         }
     }
     
-    
-    .fade-enter-active,
+      .fade-enter-active,
     .fade-leave-active {
         transition: all 0.5s ease-in-out;
     }
@@ -351,6 +450,28 @@ const registerform                              =       async function() {
     .fade-leave-from {
         opacity: 1;
         transform: translateY(0);
+    }
+
+    /* Toast animations */
+    .toast-enter-active,
+    .toast-leave-active {
+        transition: all 0.3s ease-out;
+    }
+    
+    .toast-enter-from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+    
+    .toast-leave-to {
+        opacity: 0;
+        transform: translateX(-100%);
+    }
+    
+    .toast-enter-to,
+    .toast-leave-from {
+        opacity: 1;
+        transform: translateX(0);
     }
 
 </style>

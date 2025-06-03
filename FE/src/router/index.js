@@ -7,7 +7,9 @@ import Budgets                          from '../pages/Budgets.vue'
 import Login                            from '../pages/Login.vue'
 import Register                         from '../pages/Register.vue'
 import MainLayout                       from '../layouts/MainLayout.vue'
+import NoneLayout                       from '../layouts/NoneLayout.vue'
 import AuthLayout                       from '../layouts/AuthLayout.vue'
+import AddTransaction                   from '../pages/AddTransaction.vue'
 const routes = [
     {
         name: 'Home',
@@ -35,6 +37,15 @@ const routes = [
                 meta: {
                     requiresAuth: true,
                     layout: MainLayout
+                }
+            },
+            {
+                path: 'add',
+                name: 'TransactionsAddPage',
+                component: AddTransaction,
+                meta: {
+                    requiresAuth: true,
+                    layout: NoneLayout
                 }
             },
             {
