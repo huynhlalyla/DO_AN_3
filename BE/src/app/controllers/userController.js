@@ -54,17 +54,17 @@ const registerUser = async (req, res) => {
         //kiểm tra cụ thể email hay phone đã tồn tại
         if (existingUser) {
             if (existingUser.phone === phone) {
-                return res.json({ status: 400, message: 'Số điện thoại đã tồn tại!' });
+                return res.json({ type: 'warn', message: 'Số điện thoại đã tồn tại!' });
             } else if (existingUser.email === email) {
-                return res.json({ status: 400, message: 'Email đã tồn tại' });
+                return res.json({ type: 'warn', message: 'Email đã tồn tại' });
             }
         }
         // Nếu chưa tồn tại, tạo người dùng mới
         const newUser = new Users({ phone, email, password });
         await newUser.save();
-        return res.json({ status: 200 });
+        return res.json({ type: 'success', message: 'Đăng ký thành công!' });
     } catch (error) {
-        return res.status(400).json({ status: 400 });
+        return res.status(400).json({ message: error });
     }
 };
 
