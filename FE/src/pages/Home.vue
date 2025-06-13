@@ -119,8 +119,31 @@
                       <span class="sr-only">Sửa</span>
                     </th>
                   </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
+                </thead>                <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
+                  <!-- Empty state when no transactions -->
+                  <tr v-if="transactionsData.length === 0">
+                    <td colspan="5" class="px-6 py-12 text-center">
+                      <div class="flex flex-col items-center justify-center space-y-4">
+                        <div class="w-16 h-16 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center">
+                          <svg class="w-8 h-8 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                          </svg>
+                        </div>
+                        <div class="text-center">
+                          <h3 class="text-lg font-medium text-slate-700 dark:text-slate-300 mb-2">Chưa có giao dịch nào</h3>
+                          <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">Bạn chưa có giao dịch nào trong hôm nay. Hãy thêm giao dịch đầu tiên!</p>
+                          <button class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all duration-200">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            Thêm giao dịch
+                          </button>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                  
+                  <!-- Transaction rows when data exists -->
                   <tr v-for="transaction in transactionsData" :key="transaction.date"  
                       class="bg-white/50 dark:bg-transparent hover:bg-slate-50/70 dark:hover:bg-slate-700/50 transition-all duration-200">
                     <th scope="row" class="px-6 py-4 font-medium text-slate-900 dark:text-white whitespace-nowrap">
@@ -178,9 +201,25 @@
           <div class="text-sm text-slate-600 dark:text-slate-400">
             {{ popularCategories.length }} danh mục
           </div>
-        </div>
+        </div>        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Empty state when no categories -->
+          <div v-if="popularCategories.length === 0" class="col-span-full flex flex-col items-center justify-center py-12">
+            <div class="w-16 h-16 bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/20 dark:to-pink-900/20 rounded-full flex items-center justify-center mb-4">
+              <svg class="w-8 h-8 text-purple-500 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+              </svg>
+            </div>
+            <h3 class="text-lg font-medium text-slate-700 dark:text-slate-300 mb-2">Chưa có danh mục nào</h3>
+            <p class="text-sm text-slate-500 dark:text-slate-400 text-center mb-4">Khi bạn có giao dịch, các danh mục thường dùng sẽ hiển thị ở đây</p>
+            <button class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all duration-200">
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+              </svg>
+              Thêm giao dịch đầu tiên
+            </button>
+          </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Category cards when data exists -->
           <div v-for="category in popularCategories" :key="category.name" 
                class="bg-gradient-to-br rounded-xl p-4 border transition-all duration-200 hover:transform hover:scale-105 cursor-pointer"
                :class="{
@@ -331,16 +370,14 @@ const popularCategories = computed(() => {
 
 onMounted(() => {
   // Khởi tạo Flowbite
-  initFlowbite();
-  //giả bộ dữ liệu giao dịch
+  initFlowbite();  //giả bộ dữ liệu giao dịch
   transactionsData.value        =       [
-    { type: "expense", amount: 100000, date: "2025-27-5", description: "Mua sắm", category: "Shopping" },
-    { type: "income", amount: 200000, date: "2025-28-5", description: "Lương tháng 5", category: "Salary" },
-    { type: "expense", amount: 50000, date: "2025-29-5", description: "Ăn uống", category: "Food" },
-    { type: "expense", amount: 30000, date: "2025-31-5", description: "Đi lại", category: "Transport" },
-    { type: "income", amount: 120000, date: "2025-01-6", description: "Lương tháng 6", category: "Salary" },
-    { type: "expense", amount: 40000, date: "2025-05-6", description: "Mua sắm quần áo", category: "Shopping" },
-    { type: "income", amount: 180000, date: "2025-06-6", description: "Lương tháng 6", category: "Salary" },
+    // { type: "expense", amount: 100000, date: "2025-13-6", description: "Mua sắm", category: "Shopping" },
+    // { type: "income", amount: 500000, date: "2025-13-6", description: "Lương tháng 6", category: "Salary" },
+    // { type: "expense", amount: 50000, date: "2025-13-6", description: "Ăn uống", category: "Food" },
+    // { type: "expense", amount: 30000, date: "2025-13-6", description: "Đi lại", category: "Transport" },
+    // { type: "expense", amount: 40000, date: "2025-13-6", description: "Mua sắm quần áo", category: "Shopping" },
+    // { type: "income", amount: 180000, date: "2025-13-6", description: "Tiền thưởng", category: "Bonus" },
   ]
 
 
@@ -409,8 +446,24 @@ const getChartOptions           =       () => {
 }
 
 if (document.getElementById("pie-chart") && typeof ApexCharts !== 'undefined') {
-  const chart                   =       new ApexCharts(document.getElementById("pie-chart"), getChartOptions());
-  chart.render();
+  // Only render chart if there is data
+  if (countExpense > 0 || countIncome > 0) {
+    const chart = new ApexCharts(document.getElementById("pie-chart"), getChartOptions());
+    chart.render();
+  } else {
+    // Show empty state for chart
+    const chartElement = document.getElementById("pie-chart");
+    chartElement.innerHTML = `
+      <div class="flex flex-col items-center justify-center h-full py-8">
+        <div class="w-12 h-12 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center mb-4">
+          <svg class="w-6 h-6 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+          </svg>
+        </div>
+        <p class="text-sm text-slate-500 dark:text-slate-400 text-center">Chưa có dữ liệu<br>để hiển thị biểu đồ</p>
+      </div>
+    `;
+  }
 }
 
 });

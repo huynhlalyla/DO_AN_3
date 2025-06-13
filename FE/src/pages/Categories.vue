@@ -112,24 +112,17 @@
 
         <!-- Bar Chart - Category Distribution -->
         <div class="bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/30 dark:border-slate-700/50 p-6">
-          <div class="flex items-center justify-between mb-6">
-            <h3 class="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+          <div class="flex items-center justify-between mb-6">            <h3 class="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
               <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M3 3v18h18v-2H5V3H3zm4 14h2v-6H7v6zm4 0h2V7h-2v10zm4 0h2v-8h-2v8z"/>
               </svg>
               Phân bố số tiền theo danh mục
             </h3>
-            <div class="flex gap-2">
-              <button @click="barChartType = 'amount'" 
-                      :class="barChartType === 'amount' ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'"
-                      class="px-3 py-1 rounded-lg text-sm font-medium transition-all duration-200">
-                Số tiền
-              </button>
-              <button @click="barChartType = 'count'" 
-                      :class="barChartType === 'count' ? 'bg-purple-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'"
-                      class="px-3 py-1 rounded-lg text-sm font-medium transition-all duration-200">
-                Số lượng
-              </button>
+            <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+              <div class="flex items-center gap-1">
+                <div class="w-3 h-3 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full"></div>
+                <span>Đa dạng màu sắc</span>
+              </div>
             </div>
           </div>
           <div id="bar-chart" class="h-80"></div>
@@ -300,7 +293,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import ApexCharts from 'apexcharts';
 
 // Reactive data
@@ -308,11 +301,6 @@ const categoriesData = ref([]);
 const typeFilter = ref('all');
 const statusFilter = ref('all');
 const searchQuery = ref('');
-const barChartType = ref('amount');
-
-// Chart instances
-let lineChartInstance = null;
-let barChartInstance = null;
 
 // Sample data
 onMounted(() => {
@@ -341,17 +329,6 @@ onMounted(() => {
   // Initialize charts after a short delay to ensure DOM is ready
   setTimeout(() => {
     initializeCharts();
-  }, 100);
-});
-
-// Watch for bar chart type changes
-watch(barChartType, () => {
-  // Re-render bar chart when type changes
-  if (barChartInstance) {
-    barChartInstance.destroy();
-  }
-  setTimeout(() => {
-    initBarChart();
   }, 100);
 });
 
@@ -499,37 +476,51 @@ const initLineChart = () => {
 };
 
 const initBarChart = () => {
-  // Prepare data based on current chart type
-  const chartData = barChartType.value === 'amount' 
-    ? categoriesData.value.map(cat => cat.totalAmount / 1000000) // Convert to millions
-    : categoriesData.value.map(cat => cat.transactionCount);
-  
-  const categoryNames = categoriesData.value.map(cat => cat.name);
-  
-  // Define diverse colors for each category
+  // Tạo mảng màu đa dạng cho từng danh mục
   const categoryColors = [
-    '#FF6B6B', // Red
-    '#4ECDC4', // Teal
-    '#45B7D1', // Blue
-    '#96CEB4', // Green
-    '#FFEAA7', // Yellow
-    '#DDA0DD', // Plum
-    '#98D8C8', // Mint
-    '#F7DC6F', // Light Yellow
-    '#BB8FCE', // Light Purple
-    '#85C1E9', // Light Blue
-    '#F8C471', // Orange
-    '#82E0AA', // Light Green
-    '#F1948A', // Light Red
-    '#85C1E9', // Sky Blue
-    '#F8D7DA'  // Pink
+    '#6366F1', // Indigo
+    '#8B5CF6', // Violet  
+    '#EC4899', // Pink
+    '#F59E0B', // Amber
+    '#EF4444', // Red
+    '#10B981', // Emerald
+    '#3B82F6', // Blue
+    '#F97316', // Orange
+    '#84CC16', // Lime
+    '#06B6D4', // Cyan
+    '#8B5A2B', // Brown
+    '#6B7280', // Gray
+    '#F472B6', // Additional pink
+    '#FBBF24', // Additional amber
+    '#34D399', // Additional emerald
+    '#60A5FA'  // Additional blue
+  ];
+
+  // Gradient colors tương ứng với các màu chính
+  const gradientColors = [
+    '#818CF8', // Lighter indigo
+    '#A78BFA', // Lighter violet
+    '#F472B6', // Lighter pink
+    '#FBBF24', // Lighter amber
+    '#F87171', // Lighter red
+    '#34D399', // Lighter emerald
+    '#60A5FA', // Lighter blue
+    '#FB923C', // Lighter orange
+    '#A3E635', // Lighter lime
+    '#22D3EE', // Lighter cyan
+    '#A3845A', // Lighter brown
+    '#9CA3AF', // Lighter gray
+    '#F9A8D4', // Additional lighter pink
+    '#FCD34D', // Additional lighter amber
+    '#6EE7B7', // Additional lighter emerald
+    '#93C5FD'  // Additional lighter blue
   ];
 
   const barChartOptions = {
     series: [
       {
-        name: barChartType.value === 'amount' ? 'Số tiền (triệu VND)' : 'Số lượng giao dịch',
-        data: chartData
+        name: 'Tổng tiền giao dịch',
+        data: [25, 12, 3.5, 8, 5, 6, 20, 15, 9, 4, 7, 11]
       }
     ],
     chart: {
@@ -542,34 +533,31 @@ const initBarChart = () => {
     plotOptions: {
       bar: {
         horizontal: false,
-        columnWidth: '60%',
+        columnWidth: '65%',
         borderRadius: 8,
-        distributed: true, // This enables different colors for each bar
         dataLabels: {
           position: 'top'
-        }
+        },
+        distributed: true // Cho phép mỗi cột có màu khác nhau
       }
     },
     dataLabels: {
       enabled: true,
-      formatter: function (val) {
-        return barChartType.value === 'amount' 
-          ? val.toFixed(1) + 'M'
-          : val.toString();
-      },
       style: {
-        fontSize: '11px',
-        fontWeight: 'bold',
+        fontSize: '10px',
         colors: ['#374151']
       },
-      offsetY: -20
+      offsetY: -20,
+      formatter: function (val) {
+        return val + 'M';
+      }
     },
     xaxis: {
-      categories: categoryNames,
+      categories: ['Lương', 'Ăn uống', 'Mua sắm', 'Di chuyển', 'Giải trí', 'Y tế', 'Giáo dục', 'Tiết kiệm', 'Thể thao', 'Làm đẹp', 'Gia đình', 'Khác'],
       labels: {
         style: {
           colors: '#64748B',
-          fontSize: '11px',
+          fontSize: '10px',
           fontFamily: 'Inter, sans-serif'
         },
         rotate: -45,
@@ -584,20 +572,18 @@ const initBarChart = () => {
           fontFamily: 'Inter, sans-serif'
         },
         formatter: function (val) {
-          return barChartType.value === 'amount' 
-            ? val.toFixed(1) + 'M'
-            : val.toString();
+          return val + 'M';
         }
       }
     },
-    colors: categoryColors.slice(0, categoryNames.length),
+    colors: categoryColors,
     fill: {
       type: 'gradient',
       gradient: {
         shade: 'light',
         type: 'vertical',
-        shadeIntensity: 0.4,
-        gradientToColors: categoryColors.slice(0, categoryNames.length).map(color => color + '80'),
+        shadeIntensity: 0.5,
+        gradientToColors: gradientColors,
         inverseColors: false,
         opacityFrom: 0.9,
         opacityTo: 0.6,
@@ -605,11 +591,11 @@ const initBarChart = () => {
       }
     },
     legend: {
-      show: false // Hide legend since we have distributed colors
+      show: false // Ẩn legend vì mỗi cột đã có màu riêng
     },
     grid: {
       borderColor: '#E2E8F0',
-      strokeDashArray: 5,
+      strokeDashArray: 3,
       yaxis: {
         lines: {
           show: true
@@ -622,26 +608,20 @@ const initBarChart = () => {
       }
     },
     tooltip: {
-      y: {
-        formatter: function (val, { seriesIndex, dataPointIndex }) {
-          const category = categoriesData.value[dataPointIndex];
-          if (barChartType.value === 'amount') {
-            return val.toFixed(1) + ' triệu VND';
-          } else {
-            return val + ' giao dịch';
-          }
-        }
+      theme: 'light',
+      style: {
+        fontSize: '12px',
+        fontFamily: 'Inter, sans-serif'
       },
-      x: {
-        formatter: function (val, { seriesIndex, dataPointIndex }) {
-          const category = categoriesData.value[dataPointIndex];
-          return category.name + ' (' + (category.type === 'income' ? 'Thu nhập' : 'Chi tiêu') + ')';
+      y: {
+        formatter: function (val) {
+          return val + ' triệu VND';
         }
       }
     },
     stroke: {
       show: true,
-      width: 2,
+      width: 0,
       colors: ['transparent']
     }
   };
