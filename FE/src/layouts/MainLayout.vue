@@ -205,6 +205,25 @@
                <span class="font-medium">Báo cáo</span>
             </a>
          </li>
+         <li>
+            <router-link 
+              to="/chatbot" 
+              :class="{
+                'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg border-0': isChatBot,
+                'text-slate-700 dark:text-slate-300 hover:bg-blue-100/70 dark:hover:bg-slate-700/70 border border-transparent hover:border-blue-200/50': !isChatBot
+              }"
+              class="flex items-center p-3 rounded-xl group transition-all duration-300 backdrop-blur-sm">
+               <div :class="{
+                 'bg-white/20 text-white': isChatBot,
+                 'bg-purple-100 text-purple-600 group-hover:bg-purple-200': !isChatBot
+               }" class="w-8 h-8 rounded-lg flex items-center justify-center mr-3 transition-all duration-300">
+                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93s3.05-7.44 7-7.93v15.86zm2-15.86c1.03.13 2 .45 2.87.93H13v-.93zM13 7h5.24c.25.31.48.65.68 1H13V7zm0 3h6.74c.08.33.15.66.19 1H13v-1zm0 9.93V19h2.87c-.87.48-1.84.8-2.87.93z"/>
+                 </svg>
+               </div>
+               <span class="font-medium">AI Assistant</span>
+            </router-link>
+         </li>
       </ul>
    </div>
 </aside>
@@ -302,6 +321,14 @@
                 Ngân sách
               </router-link>
             </li>
+            <li>
+              <router-link to="/chatbot" class="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 text-sm transition-colors duration-300 flex items-center">
+                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93s3.05-7.44 7-7.93v15.86zm2-15.86c1.03.13 2 .45 2.87.93H13v-.93zM13 7h5.24c.25.31.48.65.68 1H13V7zm0 3h6.74c.08.33.15.66.19 1H13v-1zm0 9.93V19h2.87c-.87.48-1.84.8-2.87.93z"/>
+                </svg>
+                AI Assistant
+              </router-link>
+            </li>
           </ul>
         </div>
 
@@ -368,8 +395,10 @@
           </div>
         </div>
       </div>
-    </div>
-  </footer>
+    </div>  </footer>
+
+  <!-- Mini Chat Widget - xuất hiện ở mọi trang -->
+  <MiniChatWidget />
 </div>
 
 </template>
@@ -382,6 +411,7 @@ import { ref,
 import {initFlowbite}       from  "flowbite";
 import {useRoute, useRouter}           from  "vue-router";
 import router from "../router";
+import MiniChatWidget from "../components/MiniChatWidget.vue";
 
 const route                 =     useRoute();
 const routerInstance        =     useRouter();
@@ -389,6 +419,7 @@ const isHomePage            =     computed(() => route.path === "/");
 const isTransactions        =     computed(() => route.path === "/transactions");
 const isCategories          =     computed(() => route.path === "/categories");
 const isbudgets             =     computed(() => route.path === "/budgets");
+const isChatBot             =     computed(() => route.path === "/chatbot");
 console.log(isHomePage.value);
 
 

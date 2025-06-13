@@ -6,6 +6,7 @@ import Categories                       from '../pages/Categories.vue'
 import Budgets                          from '../pages/Budgets.vue'
 import Login                            from '../pages/Login.vue'
 import Register                         from '../pages/Register.vue'
+import ChatBot                          from '../pages/ChatBot.vue'
 import MainLayout                       from '../layouts/MainLayout.vue'
 import NoneLayout                       from '../layouts/NoneLayout.vue'
 import AuthLayout                       from '../layouts/AuthLayout.vue'
@@ -103,6 +104,21 @@ const routes = [
                 meta: {
                     requiresAuth: true,
                     layout: MainLayout
+                }
+            }
+        ]
+    },
+    {
+        name: 'ChatBot',
+        path: '/chatbot',
+        children: [
+            {
+                path: '',
+                name: 'ChatBotPage',
+                component: ChatBot,
+                meta: {
+                    requiresAuth: true,
+                    layout: NoneLayout
                 }
             }
         ]
