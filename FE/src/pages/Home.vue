@@ -370,14 +370,18 @@ const popularCategories = computed(() => {
 
 onMounted(() => {
   // Khởi tạo Flowbite
-  initFlowbite();  //giả bộ dữ liệu giao dịch
-  transactionsData.value        =       [
-    // { type: "expense", amount: 100000, date: "2025-13-6", description: "Mua sắm", category: "Shopping" },
-    // { type: "income", amount: 500000, date: "2025-13-6", description: "Lương tháng 6", category: "Salary" },
-    // { type: "expense", amount: 50000, date: "2025-13-6", description: "Ăn uống", category: "Food" },
-    // { type: "expense", amount: 30000, date: "2025-13-6", description: "Đi lại", category: "Transport" },
-    // { type: "expense", amount: 40000, date: "2025-13-6", description: "Mua sắm quần áo", category: "Shopping" },
-    // { type: "income", amount: 180000, date: "2025-13-6", description: "Tiền thưởng", category: "Bonus" },
+  initFlowbite();  
+  
+  // Dữ liệu giả cho giao dịch (Mock data)
+  transactionsData.value = [
+    { type: "expense", amount: 100000, date: "2025-07-01", description: "Mua sắm quần áo", category: "Mua sắm" },
+    { type: "income", amount: 2500000, date: "2025-06-30", description: "Lương tháng 6", category: "Lương" },
+    { type: "expense", amount: 150000, date: "2025-07-01", description: "Ăn trưa", category: "Ăn uống" },
+    { type: "expense", amount: 50000, date: "2025-07-01", description: "Xe bus", category: "Di chuyển" },
+    { type: "expense", amount: 300000, date: "2025-06-30", description: "Tiền điện", category: "Hóa đơn" },
+    { type: "income", amount: 200000, date: "2025-06-29", description: "Bán đồ cũ", category: "Thu nhập khác" },
+    { type: "expense", amount: 80000, date: "2025-06-29", description: "Cafe với bạn", category: "Giải trí" },
+    { type: "expense", amount: 120000, date: "2025-06-28", description: "Mua sách", category: "Giáo dục" },
   ]
 
 

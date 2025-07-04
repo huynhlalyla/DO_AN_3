@@ -33,7 +33,15 @@ const authenticateUser = async (req, res) => {
         const user = await Users.findOne({ phone: data.phone });
 
         if (user && user.password === data.password) {
-            return res.json({ status: 200, userData: user });
+            return res.json({ 
+                status: 200, 
+                userData: {
+                    _id: user._id,
+                    phone: user.phone,
+                    email: user.email,
+                    name: user.name || 'User'
+                }
+            });
         } else {
             return res.json({ status: 400 });
         }
@@ -81,14 +89,14 @@ const loginUser = async (req, res) => {
         // Nếu không tìm thấy user hoặc mật khẩu không đúng
         if (user.password !== password) {
             return res.json({ status: 400, message: 'Mật khẩu không đúng!' });
-        }
-        // Đăng nhập thành công, trả về dữ liệu người dùng
+        }        // Đăng nhập thành công, trả về dữ liệu người dùng
         return res.status(200).json({
             status: 200,
             userData: {
-                id: user._id,
+                _id: user._id,
                 phone: user.phone,
-                email: user.email
+                email: user.email,
+                name: user.name || 'User'
             }
         });
     } catch (error) {

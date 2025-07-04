@@ -167,9 +167,11 @@ import {
         onMounted
         }                               from   'vue'
 import {useRouter}                      from   'vue-router'
+import { useAuth }                      from   '../composables/useAuth'
 import axios                            from    'axios'
 
 const router = useRouter();
+const { login } = useAuth();
 const inputPhone                        =       ref('')
 const inputPassword                     =       ref('')
 const inputPhoneMessage                 =       ref('');
@@ -227,11 +229,9 @@ const loginForm                         =       async () => {
     console.log(data);    try {
         const response                  =       await axios.post('http://localhost:3000/user/auth/login', data);
         const result                    =       response.data;
-        console.log(result);
-        if(result.status === 200) {
-            // Đăng nhập thành công - lưu thông tin user vào localStorage
-            localStorage.setItem('user', JSON.stringify(result.userData));
-            localStorage.setItem('isAuthenticated', 'true');
+        console.log(result);        if(result.status === 200) {
+            // Đăng nhập thành công - sử dụng useAuth để lưu thông tin user
+            login(result.userData);
             
             // Chuyển hướng về trang chủ
             router.push('/');

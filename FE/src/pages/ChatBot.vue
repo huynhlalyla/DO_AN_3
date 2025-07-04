@@ -324,7 +324,7 @@ const callLMStudioAPI = async (message) => {
       model: selectedModel.value,
       messages: [        {
           role: 'system',
-          content: 'Bạn là Vistral-7B, một trợ lý AI chuyên về tài chính cá nhân và quản lý tiền bạc tại Việt Nam. Bạn có kiến thức sâu về thị trường tài chính Việt Nam, các sản phẩm ngân hàng, đầu tư, và các thói quen tài chính phù hợp với người Việt. Hãy trả lời bằng tiếng Việt một cách thân thiện, chi tiết và hữu ích. Luôn đưa ra lời khuyên thực tế và phù hợp với điều kiện kinh tế Việt Nam.'
+          content: 'Bạn là một trợ lí AI tên là MOOD nói tiếng Việt dùng để hỗ trợ cho trang web của tôi và chỉ hoạt động trong phạm vi đó. Bạn sẽ hỗ trợ quản lí chi tiêu cá nhân. Bạn sẽ chịu trách nhiệm thống kê và cho ý kiến về các dạng chi tiêu cũng như cảnh báo sớm các rủi ro về chi tiêu trong dự án của tôi. mô tả về sự án: - dự án quản lí chi tiêu các nhân với các chức năng như: thêm, sửa xoá giao dịch. Thêm, sửa, xoá danh mục. Báo cáo chiêu tiêu, gợi ý phương hướng tiết kiệm cũng như cảnh báo sớm các nguồn hao phí tiền bạc. - bạn có thể lên lịch trình cũng như tự động hoá việc tạo danh mục và giao dịch tự động dựa vào yêu cầu của người dùng. đôi khi bạn cũng là người giúp thống kê nhanh dữ liệu. - có thể đề nghị hướng chi tiêu tốt hơn cũng như các nguồn thu nhập tốt dựa trên dữ liệu thu - chi ở những khoảng thời gian trước.'
         },
         ...messages.value.slice(-10), // Send last 10 messages for context
         {
@@ -352,7 +352,6 @@ const testConnection = async () => {
     if (response.ok) {
       const data = await response.json();
       isConnected.value = true;
-      alert('Kết nối thành công!');
       
       // Update model list if available
       if (data.data && data.data.length > 0) {
@@ -363,10 +362,6 @@ const testConnection = async () => {
     }
   } catch (error) {
     isConnected.value = false;
-    alert('Không thể kết nối đến LM Studio trên port 1234. Vui lòng đảm bảo:\n' +
-          '• LM Studio đang chạy\n' +
-          '• Model Vistral-7B đã được load\n' +
-          '• Server đang hoạt động trên port 1234');
   }
 };
 

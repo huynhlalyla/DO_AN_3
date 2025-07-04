@@ -12,6 +12,15 @@ route.post('/info/:transactionId', transactionController.getTransactionInfo);
 // Lấy tất cả giao dịch của user
 route.post('/info/all', transactionController.getUserTransactions);
 
+// Tìm kiếm giao dịch
+route.post('/search', transactionController.searchTransactions);
+
+// Lấy thống kê giao dịch
+route.post('/statistics', transactionController.getTransactionStatistics);
+
+// Cập nhật giao dịch
+route.post('/update/:transactionId', transactionController.updateTransaction);
+
 // Xóa 1 giao dịch
 route.post('/delete/:transactionId', transactionController.deleteTransaction);
 

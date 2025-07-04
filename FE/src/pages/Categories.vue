@@ -302,22 +302,22 @@ const typeFilter = ref('all');
 const statusFilter = ref('all');
 const searchQuery = ref('');
 
-// Sample data
+// Sample data - Mock categories
 onMounted(() => {
-  // Sample categories data
+  // Enhanced mock categories data
   categoriesData.value = [
-    { id: 1, name: 'Lương', type: 'income', transactionCount: 12, totalAmount: 60000000, isActive: true },
-    { id: 2, name: 'Tiền thưởng', type: 'income', transactionCount: 8, totalAmount: 12000000, isActive: true },
-    { id: 3, name: 'Freelance', type: 'income', transactionCount: 15, totalAmount: 18000000, isActive: true },
-    { id: 4, name: 'Đầu tư', type: 'income', transactionCount: 5, totalAmount: 8000000, isActive: false },
-    { id: 5, name: 'Ăn uống', type: 'expense', transactionCount: 45, totalAmount: 15000000, isActive: true },
-    { id: 6, name: 'Mua sắm', type: 'expense', transactionCount: 32, totalAmount: 12000000, isActive: true },
-    { id: 7, name: 'Di chuyển', type: 'expense', transactionCount: 28, totalAmount: 3500000, isActive: true },
-    { id: 8, name: 'Giải trí', type: 'expense', transactionCount: 20, totalAmount: 8000000, isActive: true },
-    { id: 9, name: 'Y tế', type: 'expense', transactionCount: 12, totalAmount: 5000000, isActive: true },
-    { id: 10, name: 'Giáo dục', type: 'expense', transactionCount: 8, totalAmount: 6000000, isActive: false },
-    { id: 11, name: 'Tiết kiệm', type: 'expense', transactionCount: 24, totalAmount: 20000000, isActive: true },
-    { id: 12, name: 'Khác', type: 'expense', transactionCount: 10, totalAmount: 2000000, isActive: false },
+    { id: 1, name: 'Lương', type: 'income', transactionCount: 12, totalAmount: 60000000, isActive: true, color: '#10B981', icon: '💰', description: 'Lương hàng tháng' },
+    { id: 2, name: 'Tiền thưởng', type: 'income', transactionCount: 8, totalAmount: 12000000, isActive: true, color: '#F59E0B', icon: '🎁', description: 'Tiền thưởng và bonus' },
+    { id: 3, name: 'Freelance', type: 'income', transactionCount: 15, totalAmount: 18000000, isActive: true, color: '#3B82F6', icon: '💼', description: 'Thu nhập từ freelance' },
+    { id: 4, name: 'Đầu tư', type: 'income', transactionCount: 5, totalAmount: 8000000, isActive: false, color: '#8B5CF6', icon: '📈', description: 'Lợi nhuận từ đầu tư' },
+    { id: 5, name: 'Ăn uống', type: 'expense', transactionCount: 45, totalAmount: 15000000, isActive: true, color: '#EF4444', icon: '🍽️', description: 'Chi phí ăn uống hàng ngày' },
+    { id: 6, name: 'Mua sắm', type: 'expense', transactionCount: 32, totalAmount: 12000000, isActive: true, color: '#EC4899', icon: '🛍️', description: 'Mua sắm cá nhân' },
+    { id: 7, name: 'Di chuyển', type: 'expense', transactionCount: 28, totalAmount: 3500000, isActive: true, color: '#F97316', icon: '🚗', description: 'Chi phí giao thông' },
+    { id: 8, name: 'Giải trí', type: 'expense', transactionCount: 20, totalAmount: 8000000, isActive: true, color: '#8B5CF6', icon: '🎬', description: 'Vui chơi giải trí' },
+    { id: 9, name: 'Y tế', type: 'expense', transactionCount: 12, totalAmount: 5000000, isActive: true, color: '#06B6D4', icon: '🏥', description: 'Chi phí y tế' },
+    { id: 10, name: 'Giáo dục', type: 'expense', transactionCount: 8, totalAmount: 6000000, isActive: false, color: '#10B981', icon: '📚', description: 'Học tập và đào tạo' },
+    { id: 11, name: 'Tiết kiệm', type: 'expense', transactionCount: 24, totalAmount: 20000000, isActive: true, color: '#84CC16', icon: '💰', description: 'Tiết kiệm và đầu tư' },
+    { id: 12, name: 'Khác', type: 'expense', transactionCount: 10, totalAmount: 2000000, isActive: false, color: '#6B7280', icon: '📝', description: 'Chi phí khác' },
   ];
 
   // Calculate usage percentage for each category
