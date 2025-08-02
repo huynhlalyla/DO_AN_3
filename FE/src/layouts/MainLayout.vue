@@ -147,7 +147,7 @@
          </li>
          <li>
             <router-link 
-              to="/add-transaction" 
+              to="/Transactions/add" 
               class="flex items-center p-3 rounded-xl group transition-all duration-300 backdrop-blur-sm text-slate-700 dark:text-slate-300 hover:bg-gradient-to-r hover:from-green-500 hover:to-emerald-500 hover:text-white border border-transparent hover:border-green-200/50">
                <div class="w-8 h-8 rounded-lg flex items-center justify-center mr-3 transition-all duration-300 bg-emerald-100 text-emerald-600 group-hover:bg-white/20 group-hover:text-white">
                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

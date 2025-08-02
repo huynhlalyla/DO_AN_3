@@ -3,7 +3,7 @@ import { createRouter,
 import Home                             from '../pages/Home.vue'
 import Transactions                     from '../pages/Transactions.vue'
 import Categories                       from '../pages/Categories.vue'
-import Budgets                          from '../pages/Budgets.vue'
+import AddCategory                      from '../pages/AddCategory.vue'
 import Login                            from '../pages/Login.vue'
 import Register                         from '../pages/Register.vue'
 import ChatBot                          from '../pages/ChatBot.vue'
@@ -74,6 +74,15 @@ const routes = [
                 }
             },
             {
+                path: 'add',
+                name: 'CategoriesAddPage',
+                component: AddCategory,
+                meta: {
+                    requiresAuth: true,
+                    layout: NoneLayout
+                }
+            },
+            {
                 path: ':slug',
                 name: 'CategoriesDetailPage',
                 component: Categories,
@@ -84,30 +93,7 @@ const routes = [
             }
         ]
     },
-    {
-        name: 'Budgets',
-        path: '/budgets',
-        children: [
-            {
-                path: '',
-                name: 'BudgetsPage',
-                component: Budgets,
-                meta: {
-                    requiresAuth: true,
-                    layout: MainLayout
-                }
-            },
-            {
-                path: ':slug',
-                name: 'BudgetsDetailPage',
-                component: Budgets,
-                meta: {
-                    requiresAuth: true,
-                    layout: MainLayout
-                }
-            }
-        ]
-    },
+    
     {
         name: 'ChatBot',
         path: '/chatbot',
@@ -123,30 +109,8 @@ const routes = [
             }
         ]
     },
-    {
-        name: 'Auth',
-        path: '/auth',
-        children: [
-            {
-                path: 'login',
-                name: 'loginPage',
-                component: Login,
-                meta: {
-                    requiresAuth: false,
-                    layout: AuthLayout
-                }
-            },
-            {
-                path: 'register',
-                name: 'registerPage',
-                component: Register,
-                meta: {
-                    requiresAuth: false,
-                    layout: AuthLayout
-                }
-            }
-        ]
-    },
+    
+    
 
 ]
 

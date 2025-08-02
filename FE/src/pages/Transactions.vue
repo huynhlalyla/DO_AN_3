@@ -17,7 +17,7 @@
               <p class="text-slate-600 dark:text-slate-400">Xem và quản lý tất cả giao dịch của bạn</p>
             </div>
           </div>          <div class="flex gap-3">
-            <router-link to="/add-transaction" class="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl font-medium hover:from-green-600 hover:to-emerald-600 transition-all duration-200 flex items-center gap-2">
+            <router-link to="/Transactions/add" class="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl font-medium hover:from-green-600 hover:to-emerald-600 transition-all duration-200 flex items-center gap-2">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
               </svg>
@@ -166,7 +166,8 @@
                 <th scope="col" class="px-6 py-4 font-semibold">Số tiền</th>
                 <th scope="col" class="px-6 py-4 font-semibold text-center">Thao tác</th>
               </tr>
-            </thead>            <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
+            </thead>            
+            <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
               <tr v-if="filteredTransactions.length === 0">
                 <td colspan="6" class="px-6 py-8 text-center text-slate-500 dark:text-slate-400">
                   <div class="flex flex-col items-center gap-2">
@@ -188,29 +189,30 @@
                 </th>
                 <td class="px-6 py-4">
                   <span :class="{
-                    'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300': item.transaction?.type === 'expense',
-                    'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300': item.transaction?.type === 'income'
+                    'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300': item.transaction.category_id?.type === 'expense',
+                    'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300': item.transaction.category_id?.type === 'income'
                   }" 
                   class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium">
                     <div :class="{
-                      'bg-red-500': item.transaction?.type === 'expense',
-                      'bg-green-500': item.transaction?.type === 'income'
+                      'bg-red-500': item.transaction.category_id?.type === 'expense',
+                      'bg-green-500': item.transaction.category_id?.type === 'income'
                     }" class="w-2 h-2 rounded-full mr-2"></div>
-                    {{ item.transaction?.type === 'expense' ? 'Chi tiêu' : 'Thu nhập' }}
+                    <!-- {{ item.transaction.category_id?.type === 'expense' ? 'Chi tiêu' : 'Thu nhập' }} -->
+                      {{ item.transaction }}
                   </span>
                 </td>
                 <td class="px-6 py-4">
                   <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300">
-                    {{ item.category?.name || 'Không xác định' }}
+                    {{ item.transaction.category_id?.name || 'Không xác định' }}
                   </span>
                 </td>
                 <td class="px-6 py-4">
                   <span :class="{
-                    'text-red-600 dark:text-red-400': item.transaction?.type === 'expense',
-                    'text-green-600 dark:text-green-400': item.transaction?.type === 'income'
+                    'text-red-600 dark:text-red-400': item.transaction.category_id?.type === 'expense',
+                    'text-green-600 dark:text-green-400': item.transaction.category_id?.type === 'income'
                   }" 
                   class="font-bold text-lg">
-                    {{ item.transaction?.type === 'expense' ? '-' : '+' }}{{ formatAmount(item.transaction?.amount) }}
+                    {{ item.transaction.category_id?.type === 'expense' ? '-' : '+' }}{{ formatAmount(item.transaction?.amount) }}
                   </span>
                 </td>
                 <td class="px-6 py-4 text-center">
@@ -283,111 +285,18 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { useTransactionAPI } from '../composables/useTransactionAPI'
+import { useCategoryAPI } from '../composables/useCategoryAPI'
+import { useAuth } from '../composables/useAuth'
 
 const router = useRouter()
-
-// Dữ liệu giả (Mock Data)
-const mockTransactions = [
-  {
-    transaction: {
-      _id: '1',
-      amount: 2500000,
-      type: 'income',
-      note: 'Lương tháng 6',
-      date: '2025-06-30T00:00:00.000Z'
-    },
-    category: {
-      name: 'Lương'
-    }
-  },
-  {
-    transaction: {
-      _id: '2',
-      amount: 150000,
-      type: 'expense',
-      note: 'Ăn trưa',
-      date: '2025-06-30T12:00:00.000Z'
-    },
-    category: {
-      name: 'Ăn uống'
-    }
-  },
-  {
-    transaction: {
-      _id: '3',
-      amount: 500000,
-      type: 'expense',
-      note: 'Tiền điện tháng 6',
-      date: '2025-06-29T00:00:00.000Z'
-    },
-    category: {
-      name: 'Hóa đơn'
-    }
-  },
-  {
-    transaction: {
-      _id: '4',
-      amount: 200000,
-      type: 'income',
-      note: 'Bán đồ cũ',
-      date: '2025-06-28T00:00:00.000Z'
-    },
-    category: {
-      name: 'Thu nhập khác'
-    }
-  },
-  {
-    transaction: {
-      _id: '5',
-      amount: 80000,
-      type: 'expense',
-      note: 'Cafe với bạn',
-      date: '2025-06-27T15:30:00.000Z'
-    },
-    category: {
-      name: 'Giải trí'
-    }
-  },
-  {
-    transaction: {
-      _id: '6',
-      amount: 300000,
-      type: 'expense',
-      note: 'Mua sách',
-      date: '2025-06-25T00:00:00.000Z'
-    },
-    category: {
-      name: 'Giáo dục'
-    }
-  },
-  {
-    transaction: {
-      _id: '7',
-      amount: 1200000,
-      type: 'expense',
-      note: 'Mua quần áo',
-      date: '2025-06-20T00:00:00.000Z'
-    },
-    category: {
-      name: 'Mua sắm'
-    }
-  },
-  {
-    transaction: {
-      _id: '8',
-      amount: 50000,
-      type: 'expense',
-      note: 'Xe bus',
-      date: '2025-06-20T08:00:00.000Z'
-    },
-    category: {
-      name: 'Di chuyển'
-    }
-  }
-]
+const { getTransactions, deleteTransaction, loading } = useTransactionAPI()
+const { getCategories } = useCategoryAPI()
+const { user, initAuth } = useAuth()
 
 // Reactive data
-const transactionsData = ref(mockTransactions)
+const transactionsData = ref([])
+const categoriesData = ref([])
 const dateFilter = ref('all')
 const typeFilter = ref('all')
 const categoryFilter = ref('all')
@@ -399,26 +308,85 @@ const itemsPerPage = ref(10)
 const message = ref('')
 const messageType = ref('success')
 
-// Load mock data on mount
-onMounted(() => {
-  // Simulate loading delay
-  setTimeout(() => {
-    console.log('Mock transactions loaded:', transactionsData.value.length)
-  }, 100)
+// Initialize auth and load data
+onMounted(async () => {
+  initAuth()
+  await loadTransactions()
+  await loadCategories()
 })
 
-// Delete transaction (mock)
-const handleDeleteTransaction = (transactionId) => {
+// Load transactions from API
+const loadTransactions = async () => {
+  try {
+    const result = await getTransactions()
+    if (result.status === 'success') {
+      // Transform API response to match frontend format
+      transactionsData.value = result.data.transactions.map(transaction => ({
+        transaction: {
+          _id: transaction._id,
+          amount: transaction.amount,
+          type: getCategoryType(transaction.category_id?._id),
+          note: transaction.note || '',
+          date: transaction.date
+        },
+        category: {
+          _id: transaction.category_id?._id,
+          name: transaction.category_id?.name || 'Không xác định'
+        }
+      }))
+      
+      console.log('Transactions loaded successfully:', transactionsData.value.length)
+    } else {
+      console.warn('No transactions found or invalid response')
+      transactionsData.value = []
+    }
+  } catch (err) {
+    console.error('Failed to load transactions:', err)
+    transactionsData.value = []
+  }
+}
+
+// Load categories to determine transaction type
+const loadCategories = async () => {
+  try {
+    const result = await getCategories()
+    if (result.status === 'success') {
+      categoriesData.value = result.data.categories
+    }
+  } catch (err) {
+    console.error('Failed to load categories:', err)
+  }
+}
+
+// Get category type from category ID
+const getCategoryType = (categoryId) => {
+  const category = categoriesData.value.find(cat => cat._id === categoryId)
+  return category?.type || 'expense'
+}
+
+// Delete transaction (real API)
+const handleDeleteTransaction = async (transactionId) => {
   if (!confirm('Bạn có chắc chắn muốn xóa giao dịch này?')) return
 
-  // Remove from mock data
-  const index = transactionsData.value.findIndex(item => item.transaction._id === transactionId)
-  if (index > -1) {
-    transactionsData.value.splice(index, 1)
-    message.value = 'Xóa giao dịch thành công!'
-    messageType.value = 'success'
+  try {
+    const result = await deleteTransaction(transactionId)
+    if (result.status === 'success') {
+      message.value = result.message || 'Xóa giao dịch thành công!'
+      messageType.value = 'success'
+      
+      // Reload transactions after deletion
+      await loadTransactions()
+      
+      // Auto hide message after 3 seconds
+      setTimeout(() => {
+        message.value = ''
+      }, 3000)
+    }
+  } catch (err) {
+    console.error('Failed to delete transaction:', err)
+    message.value = 'Có lỗi xảy ra khi xóa giao dịch'
+    messageType.value = 'error'
     
-    // Auto hide message after 3 seconds
     setTimeout(() => {
       message.value = ''
     }, 3000)
@@ -446,7 +414,7 @@ const uniqueCategories = computed(() => {
 const filteredTransactions = computed(() => {
   let filtered = transactionsData.value
 
-  // Client-side filtering if API search is not used
+  // Date filter
   if (dateFilter.value !== 'all') {
     const now = new Date()
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
@@ -472,14 +440,17 @@ const filteredTransactions = computed(() => {
     })
   }
 
+  // Type filter
   if (typeFilter.value !== 'all') {
     filtered = filtered.filter(item => item.transaction?.type === typeFilter.value)
   }
 
+  // Category filter
   if (categoryFilter.value !== 'all') {
     filtered = filtered.filter(item => item.category?.name === categoryFilter.value)
   }
 
+  // Search filter
   if (searchQuery.value.trim()) {
     const query = searchQuery.value.toLowerCase().trim()
     filtered = filtered.filter(item => 

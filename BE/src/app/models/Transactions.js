@@ -7,11 +7,6 @@ const Transaction = new Schema({
         type: Number, 
         required: true
     },
-    type: {
-        type: String,
-        enum: ['income', 'expense'],
-        required: true
-    },
     category_id: {
         type: Schema.Types.ObjectId,
         ref: 'Category',
@@ -29,7 +24,7 @@ const Transaction = new Schema({
     note: {
         type: String,
         default: ''
-    }
+    },
 }, {
     timestamps: true
 });

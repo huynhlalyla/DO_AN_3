@@ -1,36 +1,28 @@
-// Transaction API composable
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
+import { transactionAPI } from './useTransactionAPIReal'
 
 export function useTransactionAPI() {
     const loading = ref(false)
     const error = ref(null)
-    const transactions = ref([])
-    const statistics = ref(null)
 
-    // Base URL for API
-    const baseURL = 'http://localhost:3000/transactions'
-
-    // Helper function to handle API calls
-    const apiCall = async (url, options = {}) => {
+    // Get all transactions
+    const getTransactions = async () => {
         loading.value = true
         error.value = null
         
         try {
-            const response = await fetch(url, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...options.headers
-                },
-                ...options
-            })
+            const result = await transactionAPI.getAll()
             
-            const data = await response.json()
-            
-            if (!response.ok) {
-                throw new Error(data.message || 'API call failed')
+            if (result.status === 'success') {
+                return {
+                    status: 'success',
+                    data: {
+                        transactions: result.data
+                    }
+                }
+            } else {
+                throw new Error(result.error || 'Failed to fetch transactions')
             }
-            
-            return data
         } catch (err) {
             error.value = err.message
             throw err
@@ -41,178 +33,213 @@ export function useTransactionAPI() {
 
     // Add new transaction
     const addTransaction = async (transactionData) => {
-        const url = `${baseURL}/add`
-        const options = {
-            method: 'POST',
-            body: JSON.stringify({
-                userId: transactionData.userId,
-                categoryId: transactionData.categoryId,
-                amount: transactionData.amount,
-                date: transactionData.date,
-                note: transactionData.note
-            })
-        }
+        loading.value = true
+        error.value = null
         
-        const result = await apiCall(url, options)
-        return result
-    }
+        try {
+            // Validate required fields
+            if (!transactionData.amount || !transactionData.category_id || !transactionData.user_id) {
+                throw new Error('Số tiền, danh mục và người dùng là bắt buộc')
+            }
 
-    // Get all transactions for user
-    const getAllTransactions = async (userId) => {
-        const url = `${baseURL}/info/all`
-        const options = {
-            method: 'POST',
-            body: JSON.stringify({ userId })
-        }
-        
-        const result = await apiCall(url, options)
-        transactions.value = result.data || []
-        return result
-    }
+            // Ensure amount is a positive number
+            if (transactionData.amount <= 0) {
+                throw new Error('Số tiền phải lớn hơn 0')
+            }
 
-    // Get transaction by ID
-    const getTransactionById = async (transactionId, userId) => {
-        const url = `${baseURL}/info/${transactionId}`
-        const options = {
-            method: 'POST',
-            body: JSON.stringify({ userId })
+            const result = await transactionAPI.add(transactionData)
+            
+            if (result.status === 'success') {
+                return {
+                    status: 'success',
+                    data: {
+                        transaction: result.data
+                    },
+                    message: 'Giao dịch đã được tạo thành công'
+                }
+            } else {
+                throw new Error(result.error || 'Failed to create transaction')
+            }
+        } catch (err) {
+            error.value = err.message
+            throw err
+        } finally {
+            loading.value = false
         }
-        
-        const result = await apiCall(url, options)
-        return result
-    }
-
-    // Update transaction
-    const updateTransaction = async (transactionId, transactionData) => {
-        const url = `${baseURL}/update/${transactionId}`
-        const options = {
-            method: 'POST',
-            body: JSON.stringify({
-                userId: transactionData.userId,
-                categoryId: transactionData.categoryId,
-                amount: transactionData.amount,
-                date: transactionData.date,
-                note: transactionData.note
-            })
-        }
-        
-        const result = await apiCall(url, options)
-        return result
     }
 
     // Delete transaction
-    const deleteTransaction = async (transactionId, userId) => {
-        const url = `${baseURL}/delete/${transactionId}`
-        const options = {
-            method: 'POST',
-            body: JSON.stringify({ userId })
-        }
+    const deleteTransaction = async (transactionId) => {
+        loading.value = true
+        error.value = null
         
-        const result = await apiCall(url, options)
-        return result
-    }
+        try {
+            if (!transactionId) {
+                throw new Error('ID giao dịch là bắt buộc')
+            }
 
-    // Delete all transactions by category
-    const deleteTransactionsByCategory = async (categoryId, userId) => {
-        const url = `${baseURL}/delete/all/${categoryId}`
-        const options = {
-            method: 'POST',
-            body: JSON.stringify({ userId })
+            const result = await transactionAPI.delete(transactionId)
+            
+            if (result.status === 'success') {
+                return {
+                    status: 'success',
+                    message: 'Giao dịch đã được xóa thành công'
+                }
+            } else {
+                throw new Error(result.error || 'Failed to delete transaction')
+            }
+        } catch (err) {
+            error.value = err.message
+            throw err
+        } finally {
+            loading.value = false
         }
-        
-        const result = await apiCall(url, options)
-        return result
-    }
-
-    // Search transactions
-    const searchTransactions = async (searchParams) => {
-        const url = `${baseURL}/search`
-        const options = {
-            method: 'POST',
-            body: JSON.stringify(searchParams)
-        }
-        
-        const result = await apiCall(url, options)
-        return result
     }
 
     // Get transaction statistics
-    const getTransactionStatistics = async (userId, startDate = null, endDate = null) => {
-        const url = `${baseURL}/statistics`
-        const options = {
-            method: 'POST',
-            body: JSON.stringify({
-                userId,
-                startDate,
-                endDate
-            })
+    const getTransactionStats = async (userId) => {
+        loading.value = true
+        error.value = null
+        
+        try {
+            const result = await getTransactions()
+            
+            if (result.status === 'success') {
+                const transactions = result.data.transactions || []
+                
+                // Calculate stats - Note: type now comes from category_id.type
+                const totalIncome = transactions
+                    .filter(t => t.category_id?.type === 'income')
+                    .reduce((sum, t) => sum + (t.amount || 0), 0)
+                
+                const totalExpense = transactions
+                    .filter(t => t.category_id?.type === 'expense')
+                    .reduce((sum, t) => sum + (t.amount || 0), 0)
+                
+                const balance = totalIncome - totalExpense
+                
+                return {
+                    status: 'success',
+                    data: {
+                        totalIncome,
+                        totalExpense,
+                        balance,
+                        transactionCount: transactions.length
+                    }
+                }
+            }
+            
+            throw new Error('Failed to get transaction stats')
+        } catch (err) {
+            error.value = err.message
+            throw err
+        } finally {
+            loading.value = false
+        }
+    }
+
+    // Filter transactions by criteria
+    const filterTransactions = (transactions, filters = {}) => {
+        let filtered = [...transactions]
+        
+        // Filter by date range
+        if (filters.dateRange) {
+            const now = new Date()
+            let startDate, endDate
+            
+            switch (filters.dateRange) {
+                case 'today':
+                    startDate = new Date(now.setHours(0, 0, 0, 0))
+                    endDate = new Date(now.setHours(23, 59, 59, 999))
+                    break
+                case 'week':
+                    startDate = new Date(now.setDate(now.getDate() - now.getDay()))
+                    endDate = new Date(now.setDate(startDate.getDate() + 6))
+                    break
+                case 'month':
+                    startDate = new Date(now.getFullYear(), now.getMonth(), 1)
+                    endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+                    break
+                case 'year':
+                    startDate = new Date(now.getFullYear(), 0, 1)
+                    endDate = new Date(now.getFullYear(), 11, 31)
+                    break
+            }
+            
+            if (startDate && endDate) {
+                filtered = filtered.filter(t => {
+                    const tDate = new Date(t.date)
+                    return tDate >= startDate && tDate <= endDate
+                })
+            }
         }
         
-        const result = await apiCall(url, options)
-        statistics.value = result.data
-        return result
+        // Filter by transaction type - Note: type now comes from category_id.type
+        if (filters.type && filters.type !== 'all') {
+            filtered = filtered.filter(t => t.category_id?.type === filters.type)
+        }
+        
+        // Filter by category
+        if (filters.categoryId && filters.categoryId !== 'all') {
+            filtered = filtered.filter(t => t.category_id?._id === filters.categoryId)
+        }
+        
+        // Filter by search term
+        if (filters.search) {
+            const searchTerm = filters.search.toLowerCase()
+            filtered = filtered.filter(t => 
+                t.note?.toLowerCase().includes(searchTerm) ||
+                t.category_id?.name?.toLowerCase().includes(searchTerm)
+            )
+        }
+        
+        return filtered
     }
 
-    // Computed properties for easy access
-    const totalIncome = computed(() => {
-        return transactions.value
-            .filter(item => item.transaction?.type === 'income')
-            .reduce((sum, item) => sum + (item.transaction?.amount || 0), 0)
-    })
-
-    const totalExpense = computed(() => {
-        return transactions.value
-            .filter(item => item.transaction?.type === 'expense')
-            .reduce((sum, item) => sum + (item.transaction?.amount || 0), 0)
-    })
-
-    const balance = computed(() => {
-        return totalIncome.value - totalExpense.value
-    })
-
-    // Format currency helper
-    const formatCurrency = (amount) => {
-        return new Intl.NumberFormat('vi-VN', {
-            style: 'decimal',
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0
-        }).format(amount) + ' ₫'
-    }
-
-    // Format date helper
-    const formatDate = (dateString) => {
-        const date = new Date(dateString)
-        return date.toLocaleDateString('vi-VN', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit'
+    // Sort transactions
+    const sortTransactions = (transactions, sortBy = 'date', sortOrder = 'desc') => {
+        return [...transactions].sort((a, b) => {
+            let aValue, bValue
+            
+            switch (sortBy) {
+                case 'date':
+                    aValue = new Date(a.date)
+                    bValue = new Date(b.date)
+                    break
+                case 'amount':
+                    aValue = a.amount || 0
+                    bValue = b.amount || 0
+                    break
+                case 'category':
+                    aValue = a.category_id?.name || ''
+                    bValue = b.category_id?.name || ''
+                    break
+                default:
+                    aValue = a[sortBy] || ''
+                    bValue = b[sortBy] || ''
+            }
+            
+            if (sortOrder === 'asc') {
+                return aValue > bValue ? 1 : -1
+            } else {
+                return aValue < bValue ? 1 : -1
+            }
         })
     }
 
     return {
+        // Main API functions
+        getTransactions,
+        addTransaction,
+        deleteTransaction,
+        getTransactionStats,
+        
+        // Utility functions
+        filterTransactions,
+        sortTransactions,
+        
         // State
         loading,
-        error,
-        transactions,
-        statistics,
-        
-        // Computed
-        totalIncome,
-        totalExpense,
-        balance,
-        
-        // Methods
-        addTransaction,
-        getAllTransactions,
-        getTransactionById,
-        updateTransaction,
-        deleteTransaction,
-        deleteTransactionsByCategory,
-        searchTransactions,
-        getTransactionStatistics,
-        
-        // Helpers
-        formatCurrency,
-        formatDate
+        error
     }
 }

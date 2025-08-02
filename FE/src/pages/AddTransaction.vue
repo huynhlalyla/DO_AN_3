@@ -126,7 +126,7 @@
                                 <!-- Category Selector -->
                                 <div class="relative">
                                     <select 
-                                        v-model="form.categoryId"
+                                        v-model="form.category_id"
                                         required
                                         class="w-full px-4 py-4 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 appearance-none">
                                         <option value="" disabled>Chọn danh mục...</option>
@@ -186,21 +186,27 @@
                             </div>
 
                             <!-- Submit Button -->
-                            <div class="pt-4">
+                            <div class="pt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <button 
                                     type="submit"
-                                    :disabled="loading"
-                                    :class="loading ? 'opacity-50 cursor-not-allowed' : 'hover:from-green-600 hover:via-green-700 hover:to-emerald-700 hover:shadow-xl transform hover:scale-[1.02]'"
-                                    class="w-full py-4 bg-gradient-to-r from-green-500 via-green-600 to-emerald-600 text-white font-bold rounded-xl shadow-lg transition-all duration-300 flex items-center justify-center space-x-3">
-                                    <svg v-if="loading" class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                    <svg v-else class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                    :disabled="!form.amount || !form.category_id || loading"
+                                    class="w-full py-4 bg-gradient-to-r from-green-500 via-green-600 to-emerald-600 text-white font-bold rounded-xl shadow-lg transition-all duration-300 flex items-center justify-center space-x-3 hover:from-green-600 hover:via-green-700 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    <svg v-if="!loading" class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                                         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                                     </svg>
-                                    <span>{{ loading ? 'Đang xử lý...' : 'Xác nhận giao dịch' }}</span>
+                                    <div v-else class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                    <span>{{ loading ? 'Đang tạo...' : 'Thêm giao dịch' }}</span>
                                 </button>
+                                
+                                <!-- VNPay Payment Button -->
+                                <router-link 
+                                    to="/bank-payment"
+                                    class="w-full py-4 bg-gradient-to-r from-blue-500 via-purple-600 to-pink-600 text-white font-bold rounded-xl shadow-lg transition-all duration-300 flex items-center justify-center space-x-3 hover:from-blue-600 hover:via-purple-700 hover:to-pink-700 hover:shadow-xl transform hover:scale-[1.02]">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                                    </svg>
+                                    <span>Thanh toán VNPay</span>
+                                </router-link>
                             </div>
                         </form>
                     </section>
@@ -346,26 +352,41 @@
 import { initFlowbite } from 'flowbite'
 import { onMounted, nextTick, ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { useTransactionAPI } from '../composables/useTransactionAPI'
 import { useAuth } from '../composables/useAuth'
+import { useTransactionAPI } from '../composables/useTransactionAPI'
+import { useCategoryAPI } from '../composables/useCategoryAPI'
 
 const router = useRouter()
-const { user, login, initAuth } = useAuth()
+const { user, initAuth } = useAuth()
 const { addTransaction, loading } = useTransactionAPI()
+const { getCategories } = useCategoryAPI()
 
 // Khởi tạo auth state khi component mount
-onMounted(() => {
+onMounted(async () => {
     initAuth() // Đảm bảo user data được load từ localStorage
+    await loadCategories() // Load categories từ API
     nextTick(() => {
         initFlowbite()
     })
 })
 
+// Load categories từ API
+const loadCategories = async () => {
+    try {
+        const result = await getCategories()
+        if (result.status === 'success') {
+            categories.value = result.data.categories
+        }
+    } catch (err) {
+        console.error('Failed to load categories:', err)
+    }
+}
+
 // Form reactive data
 const form = ref({
     amount: '',
     type: 'expense',
-    categoryId: '',
+    category_id: '',
     date: new Date().toISOString().split('T')[0],
     note: ''
 })
@@ -377,71 +398,8 @@ const messageType = ref('success')
 // Categories display type for sidebar
 const categoriesType = ref('expense')
 
-// Categories data - này sẽ được thay thế bằng data từ API thực tế
-const categories = ref([
-    // Expense categories
-    { 
-        _id: '64f123456789abcdef123457',
-        name: 'Mua sắm', 
-        type: 'expense',
-        budget_id: '64f123456789abcdef123459'
-    },
-    { 
-        _id: '64f123456789abcdef123458',
-        name: 'Ăn uống', 
-        type: 'expense',
-        budget_id: '64f123456789abcdef123460'
-    },
-    { 
-        _id: '64f123456789abcdef123459',
-        name: 'Vui chơi', 
-        type: 'expense',
-        budget_id: '64f123456789abcdef123461'
-    },
-    { 
-        _id: '64f123456789abcdef123460',
-        name: 'Xe cộ', 
-        type: 'expense',
-        budget_id: '64f123456789abcdef123462'
-    },
-    { 
-        _id: '64f123456789abcdef123461',
-        name: 'Y tế', 
-        type: 'expense',
-        budget_id: '64f123456789abcdef123463'
-    },
-    { 
-        _id: '64f123456789abcdef123462',
-        name: 'Giáo dục', 
-        type: 'expense',
-        budget_id: '64f123456789abcdef123464'
-    },
-    // Income categories
-    { 
-        _id: '64f123456789abcdef123463',
-        name: 'Lương', 
-        type: 'income',
-        budget_id: '64f123456789abcdef123465'
-    },
-    { 
-        _id: '64f123456789abcdef123464',
-        name: 'Bonus', 
-        type: 'income',
-        budget_id: '64f123456789abcdef123466'
-    },
-    { 
-        _id: '64f123456789abcdef123465',
-        name: 'Làm thêm', 
-        type: 'income',
-        budget_id: '64f123456789abcdef123467'
-    },
-    { 
-        _id: '64f123456789abcdef123466',
-        name: 'Đầu tư', 
-        type: 'income',
-        budget_id: '64f123456789abcdef123468'
-    }
-])
+// Categories data - loaded từ API
+const categories = ref([])
 
 // Display data for sidebar
 const expenseCategories = ref([
@@ -530,7 +488,7 @@ const filteredCategories = computed(() => {
 
 // Watch for type changes to reset category selection
 watch(() => form.value.type, () => {
-    form.value.categoryId = ''
+    form.value.category_id = ''
 })
 
 // Set transaction type
@@ -554,7 +512,7 @@ const handleSubmit = async () => {
             return
         }
         
-        if (!form.value.categoryId) {
+        if (!form.value.category_id) {
             message.value = 'Vui lòng chọn danh mục'
             messageType.value = 'error'
             return
@@ -566,27 +524,27 @@ const handleSubmit = async () => {
             return
         }
         
-        // Prepare transaction data
+        // Prepare transaction data theo format backend API
         const transactionData = {
-            userId: user.value._id,
-            categoryId: form.value.categoryId,
             amount: parseFloat(form.value.amount),
-            date: form.value.date ? new Date(form.value.date).toISOString() : new Date().toISOString(),
-            note: form.value.note || ''
+            category_id: form.value.category_id,
+            user_id: user.value._id,
+            date: form.value.date ? new Date(form.value.date) : new Date(),
+            note: form.value.note.trim()
         }
         
         // Call API
         const result = await addTransaction(transactionData)
         
         if (result.status === 'success') {
-            message.value = 'Thêm giao dịch thành công!'
+            message.value = result.message || 'Thêm giao dịch thành công!'
             messageType.value = 'success'
             
             // Reset form
             form.value = {
                 amount: '',
                 type: 'expense',
-                categoryId: '',
+                category_id: '',
                 date: new Date().toISOString().split('T')[0],
                 note: ''
             }

@@ -17,12 +17,12 @@
             </div>
           </div>
           <div class="flex gap-3">
-            <button class="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-medium hover:from-purple-600 hover:to-pink-600 transition-all duration-200 flex items-center gap-2">
+            <router-link to="/categories/add" class="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-medium hover:from-purple-600 hover:to-pink-600 transition-all duration-200 flex items-center gap-2">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
               </svg>
               Thêm danh mục
-            </button>
+            </router-link>
           </div>
         </div>
       </div>
@@ -231,7 +231,8 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                       </svg>
                     </button>
-                    <button class="p-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200 opacity-0 group-hover:opacity-100" 
+                    <button @click="handleDeleteCategory(category.id)" 
+                            class="p-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200 opacity-0 group-hover:opacity-100" 
                             title="Xóa">
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
@@ -243,16 +244,17 @@
                 <div class="space-y-3">
                   <div class="flex items-center justify-between">
                     <span class="text-sm text-slate-600 dark:text-slate-400">Giao dịch</span>
-                    <span class="font-semibold text-slate-800 dark:text-white">{{ category.transactionCount }}</span>
+                    <span class="font-medium text-slate-700 dark:text-slate-300">{{ category.transactionCount }}</span>
                   </div>
                   
                   <div class="flex items-center justify-between">
                     <span class="text-sm text-slate-600 dark:text-slate-400">Tổng tiền</span>
-                    <span class="font-bold" :class="{
-                      'text-green-600 dark:text-green-400': category.type === 'income',
-                      'text-red-600 dark:text-red-400': category.type === 'expense'
-                    }">
-                      {{ category.type === 'expense' ? '-' : '+' }}{{ category.totalAmount.toLocaleString('vi-VN') }}₫
+                    <span class="font-medium" 
+                          :class="{
+                            'text-green-600 dark:text-green-400': category.type === 'income',
+                            'text-red-600 dark:text-red-400': category.type === 'expense'
+                          }">
+                      {{ formatCurrency(category.totalAmount) }}
                     </span>
                   </div>
 
@@ -271,15 +273,15 @@
                   <div class="space-y-1">
                     <div class="flex items-center justify-between text-xs">
                       <span class="text-slate-600 dark:text-slate-400">Mức độ sử dụng</span>
-                      <span class="font-medium text-slate-700 dark:text-slate-300">{{ category.usagePercentage }}%</span>
+                      <span class="text-slate-400">{{ Math.round(category.usagePercentage) }}%</span>
                     </div>
                     <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
                       <div class="h-2 rounded-full transition-all duration-300" 
                            :class="{
-                             'bg-gradient-to-r from-green-500 to-emerald-500': category.type === 'income',
-                             'bg-gradient-to-r from-red-500 to-pink-500': category.type === 'expense'
+                             'bg-gradient-to-r from-green-400 to-green-600': category.type === 'income',
+                             'bg-gradient-to-r from-red-400 to-red-600': category.type === 'expense'
                            }"
-                           :style="{ width: category.usagePercentage + '%' }"></div>
+                           :style="`width: ${Math.min(category.usagePercentage, 100)}%`"></div>
                     </div>
                   </div>
                 </div>
@@ -294,43 +296,185 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import { useCategoryAPI } from '../composables/useCategoryAPI';
+import { useTransactionAPI } from '../composables/useTransactionAPI';
+import { useAuth } from '../composables/useAuth';
 import ApexCharts from 'apexcharts';
+
+const { getCategories, deleteCategory, loading, error } = useCategoryAPI();
+const { getTransactions } = useTransactionAPI();
+const { user, initAuth } = useAuth();
 
 // Reactive data
 const categoriesData = ref([]);
+const transactionsData = ref([]);
 const typeFilter = ref('all');
 const statusFilter = ref('all');
 const searchQuery = ref('');
 
-// Sample data - Mock categories
-onMounted(() => {
-  // Enhanced mock categories data
-  categoriesData.value = [
-    { id: 1, name: 'Lương', type: 'income', transactionCount: 12, totalAmount: 60000000, isActive: true, color: '#10B981', icon: '💰', description: 'Lương hàng tháng' },
-    { id: 2, name: 'Tiền thưởng', type: 'income', transactionCount: 8, totalAmount: 12000000, isActive: true, color: '#F59E0B', icon: '🎁', description: 'Tiền thưởng và bonus' },
-    { id: 3, name: 'Freelance', type: 'income', transactionCount: 15, totalAmount: 18000000, isActive: true, color: '#3B82F6', icon: '💼', description: 'Thu nhập từ freelance' },
-    { id: 4, name: 'Đầu tư', type: 'income', transactionCount: 5, totalAmount: 8000000, isActive: false, color: '#8B5CF6', icon: '📈', description: 'Lợi nhuận từ đầu tư' },
-    { id: 5, name: 'Ăn uống', type: 'expense', transactionCount: 45, totalAmount: 15000000, isActive: true, color: '#EF4444', icon: '🍽️', description: 'Chi phí ăn uống hàng ngày' },
-    { id: 6, name: 'Mua sắm', type: 'expense', transactionCount: 32, totalAmount: 12000000, isActive: true, color: '#EC4899', icon: '🛍️', description: 'Mua sắm cá nhân' },
-    { id: 7, name: 'Di chuyển', type: 'expense', transactionCount: 28, totalAmount: 3500000, isActive: true, color: '#F97316', icon: '🚗', description: 'Chi phí giao thông' },
-    { id: 8, name: 'Giải trí', type: 'expense', transactionCount: 20, totalAmount: 8000000, isActive: true, color: '#8B5CF6', icon: '🎬', description: 'Vui chơi giải trí' },
-    { id: 9, name: 'Y tế', type: 'expense', transactionCount: 12, totalAmount: 5000000, isActive: true, color: '#06B6D4', icon: '🏥', description: 'Chi phí y tế' },
-    { id: 10, name: 'Giáo dục', type: 'expense', transactionCount: 8, totalAmount: 6000000, isActive: false, color: '#10B981', icon: '📚', description: 'Học tập và đào tạo' },
-    { id: 11, name: 'Tiết kiệm', type: 'expense', transactionCount: 24, totalAmount: 20000000, isActive: true, color: '#84CC16', icon: '💰', description: 'Tiết kiệm và đầu tư' },
-    { id: 12, name: 'Khác', type: 'expense', transactionCount: 10, totalAmount: 2000000, isActive: false, color: '#6B7280', icon: '📝', description: 'Chi phí khác' },
-  ];
-
-  // Calculate usage percentage for each category
-  const maxTransactions = Math.max(...categoriesData.value.map(c => c.transactionCount));
-  categoriesData.value.forEach(category => {
-    category.usagePercentage = Math.round((category.transactionCount / maxTransactions) * 100);
-  });
-
-  // Initialize charts after a short delay to ensure DOM is ready
+// Initialize auth and load categories
+onMounted(async () => {
+  initAuth();
+  await Promise.all([
+    loadCategories(),
+    loadTransactions()
+  ]);
+  
+  // Initialize charts after data is loaded
   setTimeout(() => {
     initializeCharts();
-  }, 100);
+  }, 500); // Increased delay to ensure DOM is ready
 });
+
+// Load categories from API
+const loadCategories = async () => {
+  try {
+    const result = await getCategories();
+    if (result.status === 'success' && result.data.categories) {
+      // Transform backend data to frontend format
+      categoriesData.value = result.data.categories.map(category => ({
+        id: category._id,
+        name: category.name,
+        type: category.type,
+        description: category.description || '',
+        icon: getIconByName(category.icon),
+        color: getColorByName(category.color),
+        limit_amount: category.limit_amount || 0,
+        isActive: true,
+        transactionCount: 0, // Will be calculated after loading transactions
+        totalAmount: 0, // Will be calculated after loading transactions
+        start_date: category.start_date,
+        end_date: category.end_date,
+        user_id: category.user_id,
+        usagePercentage: 0 // Will be calculated after loading transactions
+      }));
+      
+      console.log('Categories loaded successfully:', categoriesData.value.length);
+    } else {
+      console.warn('No categories found or invalid response');
+      categoriesData.value = [];
+    }
+  } catch (err) {
+    console.error('Failed to load categories:', err);
+    categoriesData.value = [];
+  }
+};
+
+// Load transactions from API
+const loadTransactions = async () => {
+  try {
+    const result = await getTransactions();
+    if (result.status === 'success' && result.data.transactions) {
+      transactionsData.value = result.data.transactions;
+      
+      // Update category statistics with transaction data
+      updateCategoryStatistics();
+      
+      console.log('Transactions loaded successfully:', transactionsData.value.length);
+    } else {
+      console.warn('No transactions found or invalid response');
+      transactionsData.value = [];
+    }
+  } catch (err) {
+    console.error('Failed to load transactions:', err);
+    transactionsData.value = [];
+  }
+};
+
+// Update category statistics based on transaction data
+const updateCategoryStatistics = () => {
+  categoriesData.value.forEach(category => {
+    // Find transactions for this category - Note: using _id instead of id for populated data
+    const categoryTransactions = transactionsData.value.filter(
+      transaction => transaction.category_id?._id === category._id || transaction.category_id === category._id
+    );
+    
+    // Calculate statistics
+    category.transactionCount = categoryTransactions.length;
+    category.totalAmount = categoryTransactions.reduce((sum, transaction) => sum + (transaction.amount || 0), 0);
+    
+    // Calculate usage percentage (based on limit_amount for expense, or relative to others for income)
+    if (category.type === 'expense' && category.limit_amount > 0) {
+      category.usagePercentage = Math.min((category.totalAmount / category.limit_amount) * 100, 100);
+    } else {
+      // For income categories or categories without limit, calculate relative usage
+      const maxAmount = Math.max(...categoriesData.value.map(c => c.totalAmount));
+      category.usagePercentage = maxAmount > 0 ? (category.totalAmount / maxAmount) * 100 : 0;
+    }
+    
+    // Update active status based on recent transactions
+    const recentTransactions = categoryTransactions.filter(t => {
+      const transactionDate = new Date(t.date);
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      return transactionDate >= thirtyDaysAgo;
+    });
+    category.isActive = recentTransactions.length > 0;
+  });
+  
+  console.log('Category statistics updated');
+};
+
+// Helper functions to map backend data
+const getIconByName = (iconName) => {
+  const iconMap = {
+    'food': '🍽️',
+    'shopping': '🛍️',
+    'transport': '🚗',
+    'entertainment': '🎬',
+    'health': '🏥',
+    'education': '📚',
+    'salary': '💰',
+    'gift': '🎁',
+    'investment': '📈',
+    'home': '🏠',
+    'travel': '✈️',
+    'other': '📝',
+    'default-icon': '📂'
+  };
+  return iconMap[iconName] || '📂';
+};
+
+const getColorByName = (colorName) => {
+  const colorMap = {
+    'blue': '#3B82F6',
+    'red': '#EF4444',
+    'green': '#10B981',
+    'purple': '#8B5CF6',
+    'pink': '#EC4899',
+    'indigo': '#6366F1',
+    'yellow': '#F59E0B',
+    'orange': '#F97316',
+    'teal': '#14B8A6',
+    'cyan': '#06B6D4',
+    'emerald': '#10B981',
+    'lime': '#84CC16',
+    'amber': '#F59E0B',
+    'rose': '#F43F5E',
+    'slate': '#64748B',
+    'gray': '#6B7280'
+  };
+  return colorMap[colorName] || '#6B7280';
+};
+
+// Delete category function
+const handleDeleteCategory = async (categoryId) => {
+  if (!confirm('Bạn có chắc chắn muốn xóa danh mục này?')) {
+    return;
+  }
+  
+  try {
+    await deleteCategory(categoryId);
+    // Reload categories and transactions after deletion
+    await Promise.all([
+      loadCategories(),
+      loadTransactions()
+    ]);
+  } catch (err) {
+    console.error('Failed to delete category:', err);
+    alert('Có lỗi xảy ra khi xóa danh mục');
+  }
+};
 
 // Computed properties
 const totalCategories = computed(() => categoriesData.value.length);
@@ -392,16 +536,22 @@ const initializeCharts = () => {
 };
 
 const initLineChart = () => {
+  // Get transaction data grouped by month
+  const monthlyData = getMonthlyData();
+  const months = monthlyData.months;
+  const incomeChartData = monthlyData.incomeData;
+  const expenseChartData = monthlyData.expenseData;
+
   const lineChartOptions = {
     series: [
       {
         name: 'Thu nhập',
-        data: [45, 52, 48, 55, 58, 62],
+        data: incomeChartData,
         color: '#10B981'
       },
       {
         name: 'Chi tiêu',
-        data: [35, 42, 38, 45, 48, 52],
+        data: expenseChartData,
         color: '#EF4444'
       }
     ],
@@ -418,7 +568,7 @@ const initLineChart = () => {
       curve: 'smooth'
     },
     xaxis: {
-      categories: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6'],
+      categories: months,
       labels: {
         style: {
           colors: '#64748B',
@@ -435,7 +585,7 @@ const initLineChart = () => {
           fontFamily: 'Inter, sans-serif'
         },
         formatter: function (val) {
-          return val + 'M';
+          return formatChartValue(val);
         }
       }
     },
@@ -454,7 +604,7 @@ const initLineChart = () => {
     tooltip: {
       y: {
         formatter: function (val) {
-          return val + ' triệu VND';
+          return formatCurrency(val * 1000000);
         }
       }
     },
@@ -476,51 +626,30 @@ const initLineChart = () => {
 };
 
 const initBarChart = () => {
+  // Get category data with real transaction amounts
+  const categoryData = getCategoryChartData();
+  const names = categoryData.names;
+  const amounts = categoryData.amounts;
+  
   // Tạo mảng màu đa dạng cho từng danh mục
   const categoryColors = [
-    '#6366F1', // Indigo
-    '#8B5CF6', // Violet  
-    '#EC4899', // Pink
-    '#F59E0B', // Amber
-    '#EF4444', // Red
-    '#10B981', // Emerald
-    '#3B82F6', // Blue
-    '#F97316', // Orange
-    '#84CC16', // Lime
-    '#06B6D4', // Cyan
-    '#8B5A2B', // Brown
-    '#6B7280', // Gray
-    '#F472B6', // Additional pink
-    '#FBBF24', // Additional amber
-    '#34D399', // Additional emerald
-    '#60A5FA'  // Additional blue
+    '#6366F1', '#8B5CF6', '#EC4899', '#F59E0B', '#EF4444', '#10B981',
+    '#3B82F6', '#F97316', '#84CC16', '#06B6D4', '#8B5A2B', '#6B7280',
+    '#F472B6', '#FBBF24', '#34D399', '#60A5FA'
   ];
 
   // Gradient colors tương ứng với các màu chính
   const gradientColors = [
-    '#818CF8', // Lighter indigo
-    '#A78BFA', // Lighter violet
-    '#F472B6', // Lighter pink
-    '#FBBF24', // Lighter amber
-    '#F87171', // Lighter red
-    '#34D399', // Lighter emerald
-    '#60A5FA', // Lighter blue
-    '#FB923C', // Lighter orange
-    '#A3E635', // Lighter lime
-    '#22D3EE', // Lighter cyan
-    '#A3845A', // Lighter brown
-    '#9CA3AF', // Lighter gray
-    '#F9A8D4', // Additional lighter pink
-    '#FCD34D', // Additional lighter amber
-    '#6EE7B7', // Additional lighter emerald
-    '#93C5FD'  // Additional lighter blue
+    '#818CF8', '#A78BFA', '#F472B6', '#FBBF24', '#F87171', '#34D399',
+    '#60A5FA', '#FB923C', '#A3E635', '#22D3EE', '#A3845A', '#9CA3AF',
+    '#F9A8D4', '#FCD34D', '#6EE7B7', '#93C5FD'
   ];
 
   const barChartOptions = {
     series: [
       {
         name: 'Tổng tiền giao dịch',
-        data: [25, 12, 3.5, 8, 5, 6, 20, 15, 9, 4, 7, 11]
+        data: amounts
       }
     ],
     chart: {
@@ -549,11 +678,11 @@ const initBarChart = () => {
       },
       offsetY: -20,
       formatter: function (val) {
-        return val + 'M';
+        return formatChartValue(val);
       }
     },
     xaxis: {
-      categories: ['Lương', 'Ăn uống', 'Mua sắm', 'Di chuyển', 'Giải trí', 'Y tế', 'Giáo dục', 'Tiết kiệm', 'Thể thao', 'Làm đẹp', 'Gia đình', 'Khác'],
+      categories: names,
       labels: {
         style: {
           colors: '#64748B',
@@ -572,7 +701,7 @@ const initBarChart = () => {
           fontFamily: 'Inter, sans-serif'
         },
         formatter: function (val) {
-          return val + 'M';
+          return formatChartValue(val);
         }
       }
     },
@@ -615,7 +744,7 @@ const initBarChart = () => {
       },
       y: {
         formatter: function (val) {
-          return val + ' triệu VND';
+          return formatCurrency(val * 1000000);
         }
       }
     },
@@ -633,6 +762,65 @@ const initBarChart = () => {
   } catch (error) {
     console.error('Error rendering bar chart:', error);
   }
+};
+
+// Utility functions for data processing
+const getMonthlyData = () => {
+  const months = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'];
+  const incomeData = new Array(12).fill(0);
+  const expenseData = new Array(12).fill(0);
+  
+  transactionsData.value.forEach(transaction => {
+    const date = new Date(transaction.date);
+    const month = date.getMonth(); // 0-11
+    const amount = transaction.amount / 1000000; // Convert to millions
+    
+    // With new schema, type is accessed via transaction.category_id.type
+    if (transaction.category_id?.type === 'income') {
+      incomeData[month] += amount;
+    } else if (transaction.category_id?.type === 'expense') {
+      expenseData[month] += amount;
+    }
+  });
+  
+  return { months, incomeData, expenseData };
+};
+
+const getCategoryChartData = () => {
+  if (categoriesData.value.length === 0) {
+    return { names: ['Chưa có dữ liệu'], amounts: [0] };
+  }
+  
+  // Sort categories by total amount and take top 12
+  const sortedCategories = [...categoriesData.value]
+    .filter(cat => cat.totalAmount > 0)
+    .sort((a, b) => b.totalAmount - a.totalAmount)
+    .slice(0, 12);
+  
+  if (sortedCategories.length === 0) {
+    return { names: ['Chưa có giao dịch'], amounts: [0] };
+  }
+  
+  const names = sortedCategories.map(cat => cat.name);
+  const amounts = sortedCategories.map(cat => cat.totalAmount / 1000000); // Convert to millions
+  
+  return { names, amounts };
+};
+
+// Format currency for display
+const formatCurrency = (amount) => {
+  return new Intl.NumberFormat('vi-VN', {
+    style: 'decimal',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(amount) + ' ₫';
+};
+
+// Format chart values
+const formatChartValue = (val) => {
+  if (val === 0) return '0';
+  if (val >= 1) return val.toFixed(1) + 'M';
+  return (val * 1000).toFixed(0) + 'K';
 };
 </script>
 

@@ -13,14 +13,37 @@ const Category = new Schema({
         required: true,
         default: 'expense'
     },
+    description: {
+        type: String,
+    },
+    icon: {
+        type: String,
+        default: 'default-icon'
+    },
+    color: {
+        type: String,
+        default: 'gray'
+    },
+    limit_amount: {
+        type: Number,
+        default: 0
+    },
+    start_date: {
+        type: Date,
+        default: Date.now
+    },
+    end_date: {
+        type: Date,
+        default: function() {
+            const date = new Date();
+            date.setMonth(date.getMonth() + 1);
+            return date;
+        }
+    },
     user_id: {
         type: Schema.Types.ObjectId,
         ref: 'User',
         required: true
-    },
-    budget_id: {
-        type: Schema.Types.ObjectId, 
-        ref: 'Budget'
     }
 }, {
     timestamps: true
