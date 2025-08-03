@@ -109,9 +109,23 @@ const routes = [
             }
         ]
     },
-    
-    
-
+    {
+        name: 'Auth',
+        path: '/auth',
+        component: AuthLayout,
+        children: [
+            {
+                path: 'login',
+                name: 'AuthLoginPage',
+                component: Login
+            },
+            {
+                path: 'register',
+                name: 'AuthRegisterPage',
+                component: Register
+            }
+        ]
+    }
 ]
 
 const router = createRouter({

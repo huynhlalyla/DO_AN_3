@@ -296,8 +296,8 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import { useCategoryAPI } from '../composables/useCategoryAPI';
-import { useTransactionAPI } from '../composables/useTransactionAPI';
+// import { useCategoryAPI } from '../composables/useCategoryAPI';
+// import { useTransactionAPI } from '../composables/useTransactionAPI';
 import { useAuth } from '../composables/useAuth';
 import ApexCharts from 'apexcharts';
 

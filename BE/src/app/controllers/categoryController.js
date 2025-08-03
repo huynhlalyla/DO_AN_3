@@ -9,6 +9,16 @@ const getAllCategories = async (req, res) => {
     }
 };
 
+const getCategoriesByType = async (req, res) => {
+    try {
+        const { type } = req.params;
+        const categories = await Categories.find({ type });
+        res.status(200).json({ status: 'success', data: categories });
+    } catch (error) {
+        res.status(500).json({ error: 'An error occurred while fetching categories by type.' });
+    }
+};
+
 const addCategory = async (req, res) => {
     try {
         const {
@@ -111,5 +121,6 @@ module.exports = {
     addCategory,
     getAllCategories,
     deleteCategory,
-    editCategory
+    editCategory,
+    getCategoriesByType
 }

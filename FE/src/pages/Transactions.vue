@@ -66,9 +66,8 @@
                 <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Danh mục</label>
                 <select v-model="categoryFilter" class="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                   <option value="all">Tất cả danh mục</option>
-                  <option v-for="category in uniqueCategories" :key="category" :value="category">
-                    {{ category }}
-                  </option>
+                  <!-- Dữ liệu giả cho danh mục -->
+                   <option v-for="category in categoriesData" :value="category._id">{{ category.name }}</option>
                 </select>
               </div>
             </div>
@@ -99,7 +98,7 @@
               <div>
                 <p class="text-sm font-medium text-green-700 dark:text-green-300">Tổng thu</p>
                 <p class="text-lg font-bold text-green-600 dark:text-green-400">
-                  +{{ filteredStats.totalIncome.toLocaleString('vi-VN') }}₫
+                  {{ formatAmount(totalIncome) }}
                 </p>
               </div>
             </div>
@@ -115,7 +114,7 @@
               <div>
                 <p class="text-sm font-medium text-red-700 dark:text-red-300">Tổng chi</p>
                 <p class="text-lg font-bold text-red-600 dark:text-red-400">
-                  -{{ filteredStats.totalExpense.toLocaleString('vi-VN') }}₫
+                  {{ formatAmount(totalExpense) }}
                 </p>
               </div>
             </div>
@@ -131,7 +130,7 @@
               <div>
                 <p class="text-sm font-medium text-blue-700 dark:text-blue-300">Giao dịch</p>
                 <p class="text-lg font-bold text-blue-600 dark:text-blue-400">
-                  {{ filteredTransactions.length }}
+                  {{ transactionsData.length }}
                 </p>
               </div>
             </div>
@@ -150,7 +149,7 @@
               Danh sách giao dịch
             </h3>
             <div class="text-sm text-slate-600 dark:text-slate-400">
-              Hiển thị {{ filteredTransactions.length }} / {{ transactionsData.length }} giao dịch
+              {{ `Hiển thị ${transactionsData.length} giao dịch` }}
             </div>
           </div>
         </div>
@@ -168,176 +167,109 @@
               </tr>
             </thead>            
             <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
-              <tr v-if="filteredTransactions.length === 0">
-                <td colspan="6" class="px-6 py-8 text-center text-slate-500 dark:text-slate-400">
-                  <div class="flex flex-col items-center gap-2">
-                    <svg class="w-12 h-12 text-slate-300 dark:text-slate-600" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    <p class="text-lg font-medium">Không có giao dịch nào</p>
-                    <p class="text-sm">Thử thay đổi bộ lọc hoặc thêm giao dịch mới</p>
-                  </div>
-                </td>
-              </tr>
-              <tr v-for="item in paginatedTransactions" :key="item.transaction?._id"  
-                  class="bg-white/50 dark:bg-transparent hover:bg-slate-50/70 dark:hover:bg-slate-700/50 transition-all duration-200">
-                <td class="px-6 py-4 text-slate-900 dark:text-slate-200 font-medium">
-                  {{ formatTransactionDate(item.transaction?.date) }}
-                </td>
-                <th scope="row" class="px-6 py-4 font-medium text-slate-900 dark:text-white">
-                  {{ item.transaction?.note || 'Không có mô tả' }}
-                </th>
+              <!-- Dữ liệu giả cho danh sách giao dịch -->
+              <tr v-for="transaction in transactionsData" class="bg-white/50 dark:bg-transparent hover:bg-slate-50/70 dark:hover:bg-slate-700/50 transition-all duration-200">
+                <td class="px-6 py-4 text-slate-900 dark:text-slate-200 font-medium">{{ formatDate(transaction.date) }}</td>
+                <th scope="row" class="px-6 py-4 font-medium text-slate-900 dark:text-white">{{ transaction.note || 'Không có mô tả' }}</th>
                 <td class="px-6 py-4">
-                  <span :class="{
-                    'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300': item.transaction.category_id?.type === 'expense',
-                    'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300': item.transaction.category_id?.type === 'income'
-                  }" 
-                  class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium">
-                    <div :class="{
-                      'bg-red-500': item.transaction.category_id?.type === 'expense',
-                      'bg-green-500': item.transaction.category_id?.type === 'income'
-                    }" class="w-2 h-2 rounded-full mr-2"></div>
-                    <!-- {{ item.transaction.category_id?.type === 'expense' ? 'Chi tiêu' : 'Thu nhập' }} -->
-                      {{ item.transaction }}
+                  <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300">
+                    <div class="bg-green-500 w-2 h-2 rounded-full mr-2"></div>
+                    {{ transaction.category_id.type === 'income' ? 'Thu nhập' : 'Chi tiêu' }}
                   </span>
                 </td>
                 <td class="px-6 py-4">
                   <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300">
-                    {{ item.transaction.category_id?.name || 'Không xác định' }}
+                    {{ transaction.category_id.name }}
                   </span>
                 </td>
                 <td class="px-6 py-4">
-                  <span :class="{
-                    'text-red-600 dark:text-red-400': item.transaction.category_id?.type === 'expense',
-                    'text-green-600 dark:text-green-400': item.transaction.category_id?.type === 'income'
-                  }" 
-                  class="font-bold text-lg">
-                    {{ item.transaction.category_id?.type === 'expense' ? '-' : '+' }}{{ formatAmount(item.transaction?.amount) }}
+                  <span :class="[
+                    {
+                      'text-green-600 dark:text-green-400': transaction.category_id.type === 'income',
+                      'text-red-600 dark:text-red-400': transaction.category_id.type === 'expense'
+                    },
+                    'font-bold text-lg'
+                  ]">
+                    {{ `${transaction.category_id.type === 'income' ? '+' : '-'}${formatAmount(transaction.amount)}` }}
                   </span>
                 </td>
                 <td class="px-6 py-4 text-center">
                   <div class="flex items-center justify-center gap-2">
-                    <button 
-                      @click="editTransaction(item.transaction?._id)"
-                      class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors p-1 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/50">
+                    <button class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors p-1 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/50">
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                       </svg>
                     </button>
-                    <button 
-                      @click="handleDeleteTransaction(item.transaction?._id)"
-                      class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition-colors p-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/50">
+                    <button class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition-colors p-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/50">
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                       </svg>
                     </button>
                   </div>
                 </td>
-              </tr>
+              </tr>              
             </tbody>
           </table>
         </div>
 
         <!-- Pagination -->
-        <div v-if="filteredTransactions.length > itemsPerPage" class="bg-slate-50 dark:bg-slate-900/50 px-6 py-4 border-t border-slate-200 dark:border-slate-700">
+        <!-- <div class="bg-slate-50 dark:bg-slate-900/50 px-6 py-4 border-t border-slate-200 dark:border-slate-700">
           <div class="flex items-center justify-between">
             <div class="text-sm text-slate-600 dark:text-slate-400">
-              Hiển thị {{ ((currentPage - 1) * itemsPerPage) + 1 }} - {{ Math.min(currentPage * itemsPerPage, filteredTransactions.length) }} 
-              trong tổng số {{ filteredTransactions.length }} giao dịch
+              Hiển thị 1 - 5 trong tổng số 12 giao dịch
             </div>
             <div class="flex items-center gap-2">
-              <button @click="currentPage--" :disabled="currentPage === 1"
-                      class="px-3 py-1 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200">
+              <button class="px-3 py-1 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200">
                 Trước
               </button>
               <span class="px-3 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-lg font-medium">
-                {{ currentPage }}
+                1
               </span>
-              <button @click="currentPage++" :disabled="currentPage === totalPages"
-                      class="px-3 py-1 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200">
+              <button class="px-3 py-1 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200">
                 Sau
               </button>
             </div>
           </div>
-        </div>
+        </div> -->
       </div>
 
-      <!-- Success/Error Message -->
-      <div v-if="message" :class="{
-        'bg-green-50 border-green-200 text-green-800 dark:bg-green-900/50 dark:border-green-700 dark:text-green-300': messageType === 'success',
-        'bg-red-50 border-red-200 text-red-800 dark:bg-red-900/50 dark:border-red-700 dark:text-red-300': messageType === 'error'
-      }" class="rounded-lg border p-4 mb-6">
-        <div class="flex items-center">
-          <svg v-if="messageType === 'success'" class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-          </svg>
-          <svg v-else class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-          </svg>
-          {{ message }}
-          <button @click="message = ''" class="ml-auto text-sm hover:opacity-70">✕</button>
-        </div>
-      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
-import { useTransactionAPI } from '../composables/useTransactionAPI'
-import { useCategoryAPI } from '../composables/useCategoryAPI'
+import { ref, onMounted, watch } from 'vue'
 import { useAuth } from '../composables/useAuth'
-
-const router = useRouter()
-const { getTransactions, deleteTransaction, loading } = useTransactionAPI()
-const { getCategories } = useCategoryAPI()
+import { getTransactions } from '../composables/useTransactionAPI'
+import { getCategories } from '../composables/useCategoryAPI'
 const { user, initAuth } = useAuth()
-
-// Reactive data
 const transactionsData = ref([])
 const categoriesData = ref([])
+
 const dateFilter = ref('all')
 const typeFilter = ref('all')
 const categoryFilter = ref('all')
 const searchQuery = ref('')
-const currentPage = ref(1)
-const itemsPerPage = ref(10)
 
-// Message state
-const message = ref('')
-const messageType = ref('success')
 
+const totalIncome = ref(0)
+const totalExpense = ref(0)
+// const currentData = ref([])
 // Initialize auth and load data
 onMounted(async () => {
   initAuth()
-  await loadTransactions()
-  await loadCategories()
+  await loadTransactions();
+  await loadCategories();
 })
 
 // Load transactions from API
 const loadTransactions = async () => {
   try {
-    const result = await getTransactions()
-    if (result.status === 'success') {
-      // Transform API response to match frontend format
-      transactionsData.value = result.data.transactions.map(transaction => ({
-        transaction: {
-          _id: transaction._id,
-          amount: transaction.amount,
-          type: getCategoryType(transaction.category_id?._id),
-          note: transaction.note || '',
-          date: transaction.date
-        },
-        category: {
-          _id: transaction.category_id?._id,
-          name: transaction.category_id?.name || 'Không xác định'
-        }
-      }))
-      
-      console.log('Transactions loaded successfully:', transactionsData.value.length)
+    const response = await getTransactions();
+    if (response.status === 'success') {
+      transactionsData.value = response.data.data.transactions;
+      console.log(transactionsData.value);
     } else {
-      console.warn('No transactions found or invalid response')
       transactionsData.value = []
     }
   } catch (err) {
@@ -346,150 +278,22 @@ const loadTransactions = async () => {
   }
 }
 
-// Load categories to determine transaction type
 const loadCategories = async () => {
   try {
-    const result = await getCategories()
-    if (result.status === 'success') {
-      categoriesData.value = result.data.categories
+    const response = await getCategories();
+    if (response.status === 'success') {
+      categoriesData.value = response.data.data;
+    } else {
+      console.error('Failed to load categories:', response.message)
     }
   } catch (err) {
     console.error('Failed to load categories:', err)
   }
 }
 
-// Get category type from category ID
-const getCategoryType = (categoryId) => {
-  const category = categoriesData.value.find(cat => cat._id === categoryId)
-  return category?.type || 'expense'
-}
-
-// Delete transaction (real API)
-const handleDeleteTransaction = async (transactionId) => {
-  if (!confirm('Bạn có chắc chắn muốn xóa giao dịch này?')) return
-
-  try {
-    const result = await deleteTransaction(transactionId)
-    if (result.status === 'success') {
-      message.value = result.message || 'Xóa giao dịch thành công!'
-      messageType.value = 'success'
-      
-      // Reload transactions after deletion
-      await loadTransactions()
-      
-      // Auto hide message after 3 seconds
-      setTimeout(() => {
-        message.value = ''
-      }, 3000)
-    }
-  } catch (err) {
-    console.error('Failed to delete transaction:', err)
-    message.value = 'Có lỗi xảy ra khi xóa giao dịch'
-    messageType.value = 'error'
-    
-    setTimeout(() => {
-      message.value = ''
-    }, 3000)
-  }
-}
-
-// Navigate to edit transaction
-const editTransaction = (transactionId) => {
-  router.push(`/transactions/edit/${transactionId}`)
-}
-
-// Navigate to add transaction
-const addTransaction = () => {
-  router.push('/add-transaction')
-}
-
-// Computed properties
-const uniqueCategories = computed(() => {
-  const categories = transactionsData.value
-    .map(item => item.category?.name)
-    .filter(Boolean)
-  return [...new Set(categories)].sort()
-})
-
-const filteredTransactions = computed(() => {
-  let filtered = transactionsData.value
-
-  // Date filter
-  if (dateFilter.value !== 'all') {
-    const now = new Date()
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-    
-    filtered = filtered.filter(item => {
-      const transactionDate = new Date(item.transaction?.date)
-      
-      switch (dateFilter.value) {
-        case 'today':
-          return transactionDate >= today
-        case 'week':
-          const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
-          return transactionDate >= weekAgo
-        case 'month':
-          const monthAgo = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate())
-          return transactionDate >= monthAgo
-        case 'year':
-          const yearAgo = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate())
-          return transactionDate >= yearAgo
-        default:
-          return true
-      }
-    })
-  }
-
-  // Type filter
-  if (typeFilter.value !== 'all') {
-    filtered = filtered.filter(item => item.transaction?.type === typeFilter.value)
-  }
-
-  // Category filter
-  if (categoryFilter.value !== 'all') {
-    filtered = filtered.filter(item => item.category?.name === categoryFilter.value)
-  }
-
-  // Search filter
-  if (searchQuery.value.trim()) {
-    const query = searchQuery.value.toLowerCase().trim()
-    filtered = filtered.filter(item => 
-      item.transaction?.note?.toLowerCase().includes(query) ||
-      item.category?.name?.toLowerCase().includes(query)
-    )
-  }
-
-  // Sort by date (newest first)
-  return filtered.sort((a, b) => 
-    new Date(b.transaction?.date) - new Date(a.transaction?.date)
-  )
-})
-
-const filteredStats = computed(() => {
-  const transactions = filteredTransactions.value
-  return {
-    totalIncome: transactions
-      .filter(item => item.transaction?.type === 'income')
-      .reduce((sum, item) => sum + (item.transaction?.amount || 0), 0),
-    totalExpense: transactions
-      .filter(item => item.transaction?.type === 'expense')
-      .reduce((sum, item) => sum + (item.transaction?.amount || 0), 0),
-  }
-})
-
-const totalPages = computed(() => {
-  return Math.ceil(filteredTransactions.value.length / itemsPerPage.value)
-})
-
-const paginatedTransactions = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage.value
-  const end = start + itemsPerPage.value
-  return filteredTransactions.value.slice(start, end)
-})
-
-// Watch for filter changes to reset pagination
-watch([dateFilter, typeFilter, categoryFilter, searchQuery], () => {
-  currentPage.value = 1
+watch(transactionsData, (newData) => {
+  totalIncome.value = newData.filter(t => t.category_id.type === 'income').reduce((sum, t) => sum + t.amount, 0)
+  totalExpense.value = newData.filter(t => t.category_id.type === 'expense').reduce((sum, t) => sum + t.amount, 0)
 })
 
 // Format currency for display
@@ -502,7 +306,7 @@ const formatAmount = (amount) => {
 }
 
 // Format date for display
-const formatTransactionDate = (dateString) => {
+const formatDate = (dateString) => {
   const date = new Date(dateString)
   return date.toLocaleDateString('vi-VN', {
     day: '2-digit',
