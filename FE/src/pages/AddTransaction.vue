@@ -64,10 +64,6 @@
                           
                         <!-- Form Body -->
                         <form class="p-8 space-y-6">
-                            <!-- Dữ liệu giả cho thông báo thành công -->
-                            <div class="bg-green-50 border-green-200 text-green-800 p-4 border rounded-lg mb-4" style="display: none;">
-                                Giao dịch đã được thêm thành công!
-                            </div>
 
                             <!-- Amount Input -->
                             <div class="space-y-2">
@@ -83,6 +79,7 @@
                                         </div>
                                     </div>
                                     <input 
+                                        v-model="amountSelected"
                                         type="number" 
                                         id="amount-input" 
                                         required
@@ -133,6 +130,7 @@
                                 <!-- Category Selector -->
                                 <div class="relative">
                                     <select 
+                                        v-model="categorySelected"
                                         required
                                         class="w-full px-4 py-4 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 appearance-none">
                                         <option value="" disabled selected>Chọn danh mục...</option>
@@ -161,6 +159,7 @@
                                         </div>
                                     </div>
                                     <input 
+                                        v-model="dateSelected"
                                         type="date" 
                                         id="transaction-date" 
                                         value="2025-08-02"
@@ -182,6 +181,7 @@
                                         </div>
                                     </div>
                                     <textarea 
+                                        v-model="notesSelected"
                                         id="transaction-notes" 
                                         rows="4" 
                                         class="w-full pl-16 pr-4 py-4 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none"
@@ -192,6 +192,7 @@
                             <!-- Submit Button -->
                             <div class="pt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <button 
+                                    @click.prevent="formSubmit"
                                     type="submit"
                                     class="w-full py-4 bg-gradient-to-r from-green-500 via-green-600 to-emerald-600 text-white font-bold rounded-xl shadow-lg transition-all duration-300 flex items-center justify-center space-x-3 hover:from-green-600 hover:via-green-700 hover:to-emerald-700">
                                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -209,6 +210,15 @@
                                     </svg>
                                     <span>Thanh toán VNPay</span>
                                 </router-link>
+                            </div>
+                            <div :class="[
+                                {
+                                    'bg-green-50 border-green-200 text-green-800 border': message.type === 'success',
+                                    'bg-red-50 border-red-200 text-red-800 border': message.type === 'error'
+                                },
+                                'p-4 rounded-lg mb-4'
+                            ]" v-if="message">
+                                {{ message.content }}
                             </div>
                         </form>
                     </section>
@@ -273,27 +283,25 @@
                             <div v-for="category in categoriesWithType" class="bg-white dark:bg-slate-800 rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-500 group">
                                 <div class="flex items-center justify-between mb-3">
                                     <div class="flex items-center space-x-3">
-                                        <div :class="[
-                                            `bg-[${category.color}]`,
+                                        <div :style="{backgroundColor: category.color}" :class="[
                                             'w-10 h-10 rounded-lg flex items-center justify-center text-white shadow-sm group-hover:scale-110 transition-transform'
                                         ]">
-                                            <span v-html="icons[category.icon]"></span>
+                                            <span v-html="icons[category.icon].icon"></span>
                                         </div>
                                         <div>
-                                            <h4 class="font-semibold text-slate-800 dark:text-slate-200 text-sm">Mua sắm</h4>
-                                            <p class="text-xs text-slate-500 dark:text-slate-400">5 giao dịch</p>
+                                            <h4 class="font-semibold text-slate-800 dark:text-slate-200 text-sm">{{ category.name }}</h4>
+                                            <p class="text-xs text-slate-500 dark:text-slate-400">{{ solveData(category._id).totalCount }} giao dịch</p>
                                         </div>
                                     </div>
                                     <div class="text-right">
                                         <p class="font-bold text-sm text-slate-800 dark:text-slate-200">{{ formatCurrency(category.limit_amount) }}</p>
-                                        <p class="text-xs text-slate-500 dark:text-slate-400">67%</p>
+                                        <p class="text-xs text-slate-500 dark:text-slate-400">{{ solveData(category._id).percentage }}</p>
                                     </div>
                                 </div>
                                 <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
-                                    <div :class="[
-                                        `bg-[${category.color}]`,
+                                    <div :style="{backgroundColor: category.color, width: solveData(category._id).percentage }" :class="[
                                         'h-full transition-all duration-300 ease-in-out',
-                                    ]" style="width: 67%">
+                                    ]">
                                         <div class="absolute inset-0 bg-white/20 animate-pulse"></div>
                                     </div>
                                 </div>
@@ -317,21 +325,22 @@
                                     <div class="w-3 h-3 bg-red-500 rounded-full"></div>
                                     <span class="text-sm font-medium text-slate-700 dark:text-slate-300">Tổng chi</span>
                                 </div>
-                                <span class="font-bold text-red-600 dark:text-red-400">1,250,000 ₫</span>
+                                <span class="font-bold text-red-600 dark:text-red-400">{{ formatCurrency(totalExpense) }}</span>
                             </div>
                             <div class="flex justify-between items-center p-3 bg-white/70 dark:bg-slate-800/70 rounded-lg">
                                 <div class="flex items-center space-x-2">
                                     <div class="w-3 h-3 bg-green-500 rounded-full"></div>
                                     <span class="text-sm font-medium text-slate-700 dark:text-slate-300">Tổng thu</span>
                                 </div>
-                                <span class="font-bold text-green-600 dark:text-green-400">3,500,000 ₫</span>
+                                <span class="font-bold text-green-600 dark:text-green-400">{{ formatCurrency(totalIncome) }}</span>
                             </div>
                             <div class="flex justify-between items-center p-3 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-slate-700 dark:to-slate-600 rounded-lg border-2 border-blue-200 dark:border-blue-500">
                                 <div class="flex items-center space-x-2">
                                     <div class="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
                                     <span class="text-sm font-bold text-slate-800 dark:text-slate-200">Còn lại</span>
                                 </div>
-                                <span class="font-bold text-blue-600 dark:text-blue-400 text-lg">2,250,000 ₫</span>                            </div>
+                                <span class="font-bold text-blue-600 dark:text-blue-400 text-lg">{{ formatCurrency(totalBalance) }}</span>
+                            </div>
                         </div>
                     </div>
                 </div>                
@@ -342,30 +351,44 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAuth } from '../composables/useAuth'
-import { getTransactions } from '../composables/useTransactionAPI'
-import { getCategoriesByType } from '../composables/useCategoryAPI'
+import { getTransactions, addTransaction } from '../composables/useTransactionAPI'
+import { getCategories, getCategoriesByType } from '../composables/useCategoryAPI'
 import { icons } from '../composables/useIcons'
+const { initAuth } = useAuth()
+const router = useRouter()
+
 
 const typeTarget = ref('expense') // Loại giao dịch mặc định là chi tiêu
 
 const transactionsData = ref([])
 const categoriesWithType = ref([])
-const { initAuth } = useAuth()
+const categories = ref([])
+
+const amountSelected = ref(0)
+const dateSelected = ref(new Date().toISOString().split('T')[0]) // Lấy ngày hiện tại
+const notesSelected = ref('')
+const categorySelected = ref('')
+
+const message = ref({
+    content: '',
+    type: '' 
+});
 
 // Khởi tạo auth state khi component mount
 onMounted( async () => {
     initAuth() // Đảm bảo user data được load từ localStorage
     await loadTransactions();
+    await loadCategories();
     await loadCategoriesByType(typeTarget.value);
 })
-
 const loadTransactions = async () => {
   try {
     const response = await getTransactions();
     if (response.status === 'success') {
-      transactionsData.value = response.data.data.transactions;
+      transactionsData.value = response.data;
       console.log(transactionsData.value);
     } else {
       transactionsData.value = []
@@ -375,7 +398,6 @@ const loadTransactions = async () => {
     transactionsData.value = []
   }
 }
-
 const loadCategoriesByType = async (type) => {
   try {
     const response = await getCategoriesByType(type);
@@ -388,6 +410,84 @@ const loadCategoriesByType = async (type) => {
     console.error('Failed to load categories by type:', err)
   }
 }
+const loadCategories = async () => {
+  try {
+    const response = await getCategories();
+    if (response.status === 'success') {
+      categories.value = response.data.data;
+    } else {
+      console.error('Failed to load categories:', response.message)
+    }
+  } catch (err) {
+    console.error('Failed to load categories:', err)
+  }
+}
+const totalIncome = computed(() => {
+  return transactionsData.value
+    .filter(tx => tx.category_id.type === 'income')
+    .reduce((sum, tx) => sum + tx.amount, 0);
+});
+const totalExpense = computed(() => {
+  return transactionsData.value
+    .filter(tx => tx.category_id.type === 'expense')
+    .reduce((sum, tx) => sum + tx.amount, 0);
+});
+const totalBalance = computed(() => {
+  return totalIncome.value - totalExpense.value;
+});
+
+function solveData(category_id) {
+    const limit_amount = categories.value.find(cat => cat._id === category_id)?.limit_amount || 0;
+    const category_transactions = transactionsData.value
+        .filter(tx => tx.category_id._id === category_id && tx.category_id.type === typeTarget.value);
+
+    const totalAmount = category_transactions.reduce((sum, tx) => sum + tx.amount, 0);
+    const totalCount = category_transactions.length;
+    const percentage = totalCount > 0 ? (totalAmount / limit_amount) * 100 : 0;
+    return {
+        totalAmount: totalAmount,
+        totalCount: totalCount,
+        percentage: percentage.toFixed(2) + '%',
+        limit_amount: limit_amount
+    }
+}
+
+function formSubmit() {
+    if (amountSelected.value <= 0) {
+        message.value.content = 'Số tiền giao dịch phải lớn hơn 0';
+        message.value.type = 'error';
+        return;
+    }
+    if (!categorySelected.value) {
+        message.value.content = 'Vui lòng chọn danh mục giao dịch';
+        message.value.type = 'error';
+        return;
+    }
+
+  const newTransaction = {
+    amount: amountSelected.value,
+    date: dateSelected.value,
+    note: notesSelected.value,
+    category_id: categorySelected.value,
+    user_id: useAuth().user.value._id // Lấy user ID từ auth state
+  }
+
+  addTransaction(newTransaction).then(response => {
+    if (response.status === 'success') {
+      message.value.content = 'Thêm giao dịch thành công!';
+      message.value.type = 'success';
+
+      setTimeout(() => {
+        message.value.content = '';
+        message.value.type = '';
+        router.push('/transactions'); // Chuyển hướng về trang quản lý giao dịch
+      }, 2000);
+    } else {
+      console.error('Failed to add transaction:', response.message)
+    }
+  })
+}
+
 
 watch(typeTarget, async (newType) => {
   await loadCategoriesByType(newType);

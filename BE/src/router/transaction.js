@@ -6,5 +6,6 @@ const transactionController = require('../app/controllers/transactionController'
 route.get('/', transactionController.getAllTransactions);
 route.post('/add', transactionController.addTransaction);
 route.delete('/delete/:id', transactionController.deleteTransaction);
+route.put('/update/:id', transactionController.updateTransaction);
 
 module.exports = route;

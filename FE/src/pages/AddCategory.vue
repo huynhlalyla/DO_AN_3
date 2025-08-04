@@ -64,12 +64,7 @@
                         </div>
                           
                         <!-- Form Body -->
-                        <form @submit.prevent="handleSubmit" class="p-8 space-y-6">
-                            <!-- Success/Error Messages -->
-                            <div v-if="message" :class="messageType === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'" class="p-4 border rounded-lg mb-4">
-                                {{ message }}
-                            </div>
-
+                        <form class="p-8 space-y-6">
                             <!-- Category Name Input -->
                             <div class="space-y-2">
                                 <label for="category-name" class="block text-sm font-semibold text-slate-800 dark:text-slate-200">
@@ -84,7 +79,7 @@
                                         </div>
                                     </div>
                                     <input 
-                                        v-model="form.name"
+                                        v-model="categoryName"
                                         type="text" 
                                         id="category-name" 
                                         required
@@ -104,9 +99,13 @@
                                 <div class="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-slate-700 rounded-xl">
                                     <button 
                                         type="button"
-                                        @click="setCategoryType('expense')"
-                                        :class="form.type === 'expense' ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-lg' : 'text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-600'"
-                                        class="py-3 px-4 rounded-lg font-medium transition-all duration-300 flex items-center justify-center space-x-2">
+                                        @click="categoryType = 'expense'"
+                                        :class="[
+                                            {
+                                                'bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-lg': categoryType === 'expense'
+                                            },
+                                            'py-3 px-4 rounded-lg font-medium transition-all text-black duration-300 flex items-center justify-center space-x-2'
+                                        ]">
                                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                                             <path d="M12 2L1 13h4v7a1 1 0 001 1h12a1 1 0 001-1v-7h4L12 2zm0 2.5L19.5 13H16v7H8v-7H4.5L12 4.5z"/>
                                         </svg>
@@ -114,9 +113,13 @@
                                     </button>
                                     <button 
                                         type="button"
-                                        @click="setCategoryType('income')"
-                                        :class="form.type === 'income' ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg' : 'text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-600'"
-                                        class="py-3 px-4 rounded-lg font-medium transition-all duration-300 flex items-center justify-center space-x-2">
+                                        @click="categoryType = 'income'"
+                                        :class="[
+                                            {
+                                                'bg-gradient-to-r from-green-500 to-teal-500 text-white shadow-lg': categoryType === 'income'
+                                            },
+                                            'py-3 px-4 rounded-lg font-medium transition-all duration-300 flex items-center justify-center space-x-2 text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-600'
+                                        ]">
                                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                                             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.05.82 1.87 2.65 1.87 1.96 0 2.4-.98 2.4-1.59 0-.83-.44-1.61-2.67-2.14-2.48-.6-4.18-1.62-4.18-3.67 0-1.72 1.39-2.84 3.11-3.21V4h2.67v1.95c1.86.45 2.79 1.86 2.85 3.39H14.3c-.05-1.11-.64-1.87-2.22-1.87-1.5 0-2.4.68-2.4 1.64 0 .84.65 1.39 2.67 1.91 2.28.6 4.18 1.58 4.18 3.91 0 1.82-1.33 2.96-3.12 3.16z"/>
                                         </svg>
@@ -132,16 +135,22 @@
                                 </label>
                                 
                                 <!-- Icon Grid -->
-                                <div class="grid grid-cols-6 gap-3">
+                                <div class="flex flex-wrap gap-3">
+                                    <!-- Food Icon - Selected -->
                                     <button 
-                                        v-for="icon in availableIcons" 
-                                        :key="icon.id"
+                                        @click="selectedIcon = icon.name"
+                                        v-for="icon in icons"
                                         type="button"
-                                        @click="selectIcon(icon)"
-                                        :class="form.icon === icon.id ? 'ring-2 ring-purple-500 bg-purple-100 dark:bg-purple-900/50' : 'hover:bg-slate-100 dark:hover:bg-slate-700'"
-                                        class="w-12 h-12 rounded-lg flex items-center justify-center transition-all duration-200 border border-slate-200 dark:border-slate-600">
-                                        <component :is="icon.component" class="w-6 h-6 text-slate-700 dark:text-slate-300" />
+                                        :class="[
+                                            {
+                                                'ring-2 ring-purple-500 scale-110': selectedIcon === icon.name,
+                                                'hover:scale-105': selectedIcon !== icon.name
+                                            },
+                                            'w-12 h-12 inline-flex rounded-lg items-center justify-center transition-all duration-200 border border-slate-200 dark:border-slate-600'
+                                        ]">
+                                        <span v-html="icon.icon"></span>
                                     </button>
+
                                 </div>
                             </div>
 
@@ -153,17 +162,16 @@
                                 
                                 <!-- Color Grid -->
                                 <div class="grid grid-cols-8 gap-2">
-                                    <button 
-                                        v-for="color in availableColors" 
-                                        :key="color.name"
-                                        type="button"
-                                        @click="selectColor(color)"
-                                        :class="[
-                                            color.class,
-                                            form.color === color.name ? 'ring-2 ring-slate-400 scale-110' : 'hover:scale-105'
-                                        ]"
-                                        class="w-8 h-8 rounded-full transition-all duration-200 relative">
-                                        <div v-if="form.color === color.name" class="absolute inset-0 flex items-center justify-center">
+                                    <!-- Red - Selected -->
+                                    <button
+                                    @click="selectedColor = color"
+                                    v-for="color in colors"
+                                    :style="`background-color: ${color}`"
+                                    :class="[
+                                        selectedColor === color ? 'ring-2 ring-slate-400 scale-110' : 'hover:scale-105'
+                                    ]"
+                                     type="button" class="w-8 h-8 rounded-full transition-all duration-200 relative scale-110">
+                                        <div v-if="selectedColor === color" class="absolute inset-0 flex items-center justify-center">
                                             <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
                                                 <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
                                             </svg>
@@ -186,7 +194,7 @@
                                         </div>
                                     </div>
                                     <textarea 
-                                        v-model="form.description"
+                                        v-model="categoryDescription"
                                         id="category-description" 
                                         rows="3" 
                                         maxlength="200"
@@ -196,7 +204,7 @@
                             </div>
 
                             <!-- Budget Limit (for expense categories) -->
-                            <div v-if="form.type === 'expense'" class="space-y-2">
+                            <div class="space-y-2">
                                 <label for="budget-limit" class="block text-sm font-semibold text-slate-800 dark:text-slate-200">
                                     Ngân sách giới hạn <span class="text-red-500">*</span>
                                 </label>
@@ -209,7 +217,7 @@
                                         </div>
                                     </div>
                                     <input 
-                                        v-model="form.limitAmount"
+                                        v-model="budgetLimit"
                                         type="number" 
                                         id="budget-limit" 
                                         required
@@ -220,42 +228,15 @@
                                 <p class="text-xs text-slate-500 dark:text-slate-400">Số tiền tối đa có thể chi cho danh mục này trong một tháng</p>
                             </div>
 
-                            <!-- Limit Amount for income categories too -->
-                            <div v-if="form.type === 'income'" class="space-y-2">
-                                <label for="target-amount" class="block text-sm font-semibold text-slate-800 dark:text-slate-200">
-                                    Mục tiêu thu nhập <span class="text-red-500">*</span>
-                                </label>
-                                <div class="relative">
-                                    <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                                        <div class="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center">
-                                            <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.05.82 1.87 2.65 1.87 1.96 0 2.4-.98 2.4-1.59 0-.83-.44-1.61-2.67-2.14-2.48-.6-4.18-1.62-4.18-3.67 0-1.72 1.39-2.84 3.11-3.21V4h2.67v1.95c1.86.45 2.79 1.86 2.85 3.39H14.3c-.05-1.11-.64-1.87-2.22-1.87-1.5 0-2.4.68-2.4 1.64 0 .84.65 1.39 2.67 1.91 2.28.6 4.18 1.58 4.18 3.91 0 1.82-1.33 2.96-3.12 3.16z"/>
-                                            </svg>
-                                        </div>
-                                    </div>
-                                    <input 
-                                        v-model="form.limitAmount"
-                                        type="number" 
-                                        id="target-amount" 
-                                        required
-                                        min="1"
-                                        class="w-full pl-16 pr-4 py-4 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 text-lg font-medium"
-                                        placeholder="0">
-                                </div>
-                                <p class="text-xs text-slate-500 dark:text-slate-400">Mục tiêu thu nhập mong muốn cho danh mục này trong một tháng</p>
-                            </div>
-
                             <!-- Submit Button -->
                             <div class="pt-4">
                                 <button 
                                     type="submit"
-                                    :disabled="!form.name.trim() || loading"
-                                    class="w-full py-4 bg-gradient-to-r from-purple-500 via-blue-600 to-indigo-600 text-white font-bold rounded-xl shadow-lg transition-all duration-300 flex items-center justify-center space-x-3 hover:from-purple-600 hover:via-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed">
-                                    <svg v-if="!loading" class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                    class="w-full py-4 bg-gradient-to-r from-purple-500 via-blue-600 to-indigo-600 text-white font-bold rounded-xl shadow-lg transition-all duration-300 flex items-center justify-center space-x-3 hover:from-purple-600 hover:via-blue-700 hover:to-indigo-700">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                                         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                                     </svg>
-                                    <div v-else class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                    <span>{{ loading ? 'Đang tạo...' : 'Tạo danh mục' }}</span>
+                                    <span>Tạo danh mục</span>
                                 </button>
                             </div>
                         </form>
@@ -287,25 +268,24 @@
                         <div class="bg-white dark:bg-slate-800 rounded-xl p-4 shadow-lg border border-slate-200 dark:border-slate-700">
                             <div class="flex items-center justify-between mb-3">
                                 <div class="flex items-center space-x-3">
-                                    <div :class="getSelectedColorClass()" class="w-10 h-10 rounded-lg flex items-center justify-center text-white shadow-sm">
-                                        <component :is="getSelectedIcon()" class="w-5 h-5" />
+                                    <div :style="{backgroundColor: selectedColor}" class="w-10 h-10 rounded-lg flex items-center justify-center text-white shadow-sm">
+                                        <span v-html="icons[selectedIcon].icon"></span>
                                     </div>
                                     <div>
                                         <h4 class="font-semibold text-slate-800 dark:text-slate-200 text-sm">
-                                            {{ form.name || 'Tên danh mục' }}
+                                            {{ categoryName || 'Tên danh mục' }}
                                         </h4>
                                         <p class="text-xs text-slate-500 dark:text-slate-400">
-                                            {{ form.type === 'expense' ? 'Chi tiêu' : 'Thu nhập' }}
+                                            {{ categoryType === 'expense' ? 'Chi tiêu' : 'Thu nhập' }}
                                         </p>
                                     </div>
                                 </div>
                                 <div class="text-right">
-                                    <p class="font-bold text-sm text-slate-800 dark:text-slate-200">0 ₫</p>
-                                    <p class="text-xs text-slate-500 dark:text-slate-400">0 giao dịch</p>
+                                    <p class="font-bold text-sm text-slate-800 dark:text-slate-200">{{ formatCurrency(budgetLimit) }}</p>
                                 </div>
                             </div>
-                            <div v-if="form.description" class="text-xs text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-700 p-2 rounded-lg">
-                                {{ form.description }}
+                            <div class="text-xs text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-700 p-2 rounded-lg">
+                                {{ categoryDescription || 'Mô tả danh mục' }}
                             </div>
                         </div>
                         
@@ -321,14 +301,52 @@
                             </div>
                             
                             <div class="space-y-3 max-h-64 overflow-y-auto">
-                                <div v-for="category in existingCategories" :key="category.id" 
-                                     class="flex items-center space-x-3 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-                                    <div :class="category.colorClass" class="w-8 h-8 rounded-lg flex items-center justify-center text-white">
-                                        <component :is="category.icon" class="w-4 h-4" />
+                                <!-- Existing Categories - Static Data -->
+                                <div class="flex items-center space-x-3 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                                    <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white bg-blue-500">
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M7 18c0 1.1.9 2 2 2s2-.9 2-2-.9-2-2-2-2 .9-2 2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12L8.1 13h7.45c.75 0 1.41-.41 1.75-1.03L21.7 4H5.21l-.94-2H1zm16 16c0 1.1.9 2 2 2s2-.9 2-2-.9-2-2-2-2 .9-2 2z"/>
+                                        </svg>
                                     </div>
                                     <div class="flex-1 min-w-0">
-                                        <p class="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">{{ category.name }}</p>
-                                        <p class="text-xs text-slate-500 dark:text-slate-400">{{ category.type === 'expense' ? 'Chi tiêu' : 'Thu nhập' }}</p>
+                                        <p class="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">Mua sắm</p>
+                                        <p class="text-xs text-slate-500 dark:text-slate-400">Chi tiêu</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center space-x-3 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                                    <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white bg-green-500">
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.05.82 1.87 2.65 1.87 1.96 0 2.4-.98 2.4-1.59 0-.83-.44-1.61-2.67-2.14-2.48-.6-4.18-1.62-4.18-3.67 0-1.72 1.39-2.84 3.11-3.21V4h2.67v1.95c1.86.45 2.79 1.86 2.85 3.39H14.3c-.05-1.11-.64-1.87-2.22-1.87-1.5 0-2.4.68-2.4 1.64 0 .84.65 1.39 2.67 1.91 2.28.6 4.18 1.58 4.18 3.91 0 1.82-1.33 2.96-3.12 3.16z"/>
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">Lương</p>
+                                        <p class="text-xs text-slate-500 dark:text-slate-400">Thu nhập</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center space-x-3 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                                    <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white bg-yellow-500">
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.22.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">Di chuyển</p>
+                                        <p class="text-xs text-slate-500 dark:text-slate-400">Chi tiêu</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center space-x-3 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                                    <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white bg-purple-500">
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">Giải trí</p>
+                                        <p class="text-xs text-slate-500 dark:text-slate-400">Chi tiêu</p>
                                     </div>
                                 </div>
                             </div>
@@ -350,21 +368,21 @@
                                         <div class="w-3 h-3 bg-red-500 rounded-full"></div>
                                         <span class="text-sm font-medium text-slate-700 dark:text-slate-300">Chi tiêu</span>
                                     </div>
-                                    <span class="font-bold text-red-600 dark:text-red-400">{{ expenseCount }}</span>
+                                    <span class="font-bold text-red-600 dark:text-red-400">3</span>
                                 </div>
                                 <div class="flex justify-between items-center p-3 bg-white/70 dark:bg-slate-800/70 rounded-lg">
                                     <div class="flex items-center space-x-2">
                                         <div class="w-3 h-3 bg-green-500 rounded-full"></div>
                                         <span class="text-sm font-medium text-slate-700 dark:text-slate-300">Thu nhập</span>
                                     </div>
-                                    <span class="font-bold text-green-600 dark:text-green-400">{{ incomeCount }}</span>
+                                    <span class="font-bold text-green-600 dark:text-green-400">1</span>
                                 </div>
                                 <div class="flex justify-between items-center p-3 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/50 dark:to-blue-900/50 rounded-lg border-2 border-purple-200 dark:border-purple-500/50">
                                     <div class="flex items-center space-x-2">
                                         <div class="w-3 h-3 bg-purple-500 rounded-full animate-pulse"></div>
                                         <span class="text-sm font-bold text-slate-800 dark:text-slate-200">Tổng cộng</span>
                                     </div>
-                                    <span class="font-bold text-purple-600 dark:text-purple-400">{{ totalCount }}</span>
+                                    <span class="font-bold text-purple-600 dark:text-purple-400">4</span>
                                 </div>
                             </div>
                         </div>
@@ -376,7 +394,33 @@
 </template>
 
 <script setup>
+import { onMounted, ref } from 'vue'
+import { useAuth } from '../composables/useAuth'
+import { icons } from '../composables/useIcons'
 
+const { initAuth } = useAuth()
+const colors = ref([
+    'red', 'blue', 'green', 'orange', 'purple', 'pink', 'indigo', 'gray'
+])
+
+
+const selectedColor = ref('red')
+const selectedIcon = ref('food')
+const categoryName = ref('')
+const categoryType = ref('expense')
+const categoryDescription = ref('')
+const budgetLimit = ref(0)
+// Initialize auth
+onMounted(() => {
+  initAuth()
+})
+
+const formatCurrency = (value) => {
+    return new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND'
+    }).format(value)
+}
 </script>
 
 <style lang="css" scoped>

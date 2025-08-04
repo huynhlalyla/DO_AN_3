@@ -167,13 +167,18 @@
               </tr>
             </thead>            
             <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
-              <!-- Dữ liệu giả cho danh sách giao dịch -->
               <tr v-for="transaction in transactionsData" class="bg-white/50 dark:bg-transparent hover:bg-slate-50/70 dark:hover:bg-slate-700/50 transition-all duration-200">
                 <td class="px-6 py-4 text-slate-900 dark:text-slate-200 font-medium">{{ formatDate(transaction.date) }}</td>
                 <th scope="row" class="px-6 py-4 font-medium text-slate-900 dark:text-white">{{ transaction.note || 'Không có mô tả' }}</th>
                 <td class="px-6 py-4">
-                  <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300">
-                    <div class="bg-green-500 w-2 h-2 rounded-full mr-2"></div>
+                  <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-green-800 dark:bg-blue-900/50 dark:text-blue-300">
+                    <div :class="[
+                      {
+                        'bg-green-500 w-2 h-2 rounded-full mr-2': transaction.category_id.type === 'income',
+                        'bg-red-500 w-2 h-2 rounded-full mr-2': transaction.category_id.type === 'expense'
+                      },
+                      'inline-block mr-2'
+                    ]"></div>
                     {{ transaction.category_id.type === 'income' ? 'Thu nhập' : 'Chi tiêu' }}
                   </span>
                 </td>
@@ -195,12 +200,12 @@
                 </td>
                 <td class="px-6 py-4 text-center">
                   <div class="flex items-center justify-center gap-2">
-                    <button class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors p-1 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/50">
+                    <button @click="openEditModal(transaction)" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors p-1 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/50">
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                       </svg>
                     </button>
-                    <button class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition-colors p-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/50">
+                    <button @click="openDeleteModal(transaction)" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition-colors p-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/50">
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                       </svg>
@@ -234,15 +239,171 @@
       </div>
 
     </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div v-if="showDeleteModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full border border-white/30 dark:border-slate-700/50 overflow-hidden">
+        <div class="p-6">
+          <div class="flex items-center gap-4 mb-6">
+            <div class="w-12 h-12 bg-red-100 dark:bg-red-900/50 rounded-full flex items-center justify-center">
+              <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-lg font-bold text-slate-800 dark:text-white">Xác nhận xóa giao dịch</h3>
+              <p class="text-sm text-slate-600 dark:text-slate-400">Hành động này không thể hoàn tác</p>
+            </div>
+          </div>
+          
+          <div class="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-4 mb-6">
+            <div class="space-y-2">
+              <div class="flex justify-between">
+                <span class="text-sm text-slate-600 dark:text-slate-400">Mô tả:</span>
+                <span class="text-sm font-medium text-slate-800 dark:text-white">{{ selectedTransaction?.note || 'Không có mô tả' }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-sm text-slate-600 dark:text-slate-400">Số tiền:</span>
+                <span :class="[
+                  {
+                    'text-green-600 dark:text-green-400': selectedTransaction?.category_id?.type === 'income',
+                    'text-red-600 dark:text-red-400': selectedTransaction?.category_id?.type === 'expense'
+                  },
+                  'text-sm font-bold'
+                ]">
+                  {{ selectedTransaction ? `${selectedTransaction.category_id.type === 'income' ? '+' : '-'}${formatAmount(selectedTransaction.amount)}` : '' }}
+                </span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-sm text-slate-600 dark:text-slate-400">Danh mục:</span>
+                <span class="text-sm font-medium text-slate-800 dark:text-white">{{ selectedTransaction?.category_id?.name }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-sm text-slate-600 dark:text-slate-400">Ngày:</span>
+                <span class="text-sm font-medium text-slate-800 dark:text-white">{{ selectedTransaction ? formatDate(selectedTransaction.date) : '' }}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="flex gap-3">
+            <button @click="closeDeleteModal" class="flex-1 px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-medium hover:bg-slate-300 dark:hover:bg-slate-600 transition-all duration-200">
+              Hủy
+            </button>
+            <button 
+            @click="destroyTransaction(selectedTransaction._id)"
+            class="flex-1 px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl font-medium hover:from-red-600 hover:to-red-700 transition-all duration-200">
+              Xóa giao dịch
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Transaction Modal -->
+    <div v-if="showEditModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-lg w-full border border-white/30 dark:border-slate-700/50 overflow-hidden max-h-[90vh] overflow-y-auto">
+        <div class="bg-gradient-to-r from-blue-500 to-purple-600 p-6 text-white">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-xl font-bold">Chỉnh sửa giao dịch</h3>
+                <p class="text-blue-100 text-sm">Cập nhật thông tin giao dịch</p>
+              </div>
+            </div>
+            <button @click="closeEditModal" class="text-white/80 hover:text-white transition-colors">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        
+        <div class="p-6 space-y-6">
+          <!-- Amount -->
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">
+              Số tiền <span class="text-red-500">*</span>
+            </label>
+            <div class="relative">
+              <input 
+                v-model="selectedTransaction.amount"
+                type="number" 
+                placeholder="0" 
+                class="w-full px-4 py-3 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg font-semibold">
+              <div class="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-500 dark:text-slate-400 font-medium">
+                ₫
+              </div>
+            </div>
+          </div>
+
+          <!-- Category -->
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">
+              Danh mục <span class="text-red-500">*</span>
+            </label>
+            <select class="w-full px-4 py-3 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              <option v-for="category in categoriesData" :key="category._id" :value="category._id" :selected="category._id === selectedTransaction?.category_id?._id">
+                {{ category.name }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Date -->
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">
+              Ngày giao dịch <span class="text-red-500">*</span>
+            </label>
+            <input 
+              :value="selectedTransaction?.date ? new Date(selectedTransaction.date).toISOString().split('T')[0] : ''"
+              type="date" 
+              class="w-full px-4 py-3 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+          </div>
+
+          <!-- Description/Notes -->
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">
+              Mô tả
+            </label>
+            <textarea 
+              v-model="selectedTransaction.note"
+              rows="3" 
+              placeholder="Nhập mô tả cho giao dịch..." 
+              class="w-full px-4 py-3 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"></textarea>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex gap-3 pt-4">
+            <button @click="closeEditModal" class="flex-1 px-4 py-3 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-medium hover:bg-slate-300 dark:hover:bg-slate-600 transition-all duration-200">
+              Hủy
+            </button>
+            <button @click="editTransaction(selectedTransaction)" class="flex-1 px-4 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl font-medium hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              Cập nhật
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import { useAuth } from '../composables/useAuth'
-import { getTransactions } from '../composables/useTransactionAPI'
+import { 
+  getTransactions, 
+  deleteTransaction, 
+  updateTransaction 
+} from '../composables/useTransactionAPI'
 import { getCategories } from '../composables/useCategoryAPI'
-const { user, initAuth } = useAuth()
+const { initAuth } = useAuth()
 const transactionsData = ref([])
 const categoriesData = ref([])
 
@@ -251,10 +412,14 @@ const typeFilter = ref('all')
 const categoryFilter = ref('all')
 const searchQuery = ref('')
 
+// Modal states
+const showDeleteModal = ref(false)
+const showEditModal = ref(false)
+const selectedTransaction = ref(null)
 
 const totalIncome = ref(0)
 const totalExpense = ref(0)
-// const currentData = ref([])
+
 // Initialize auth and load data
 onMounted(async () => {
   initAuth()
@@ -267,7 +432,7 @@ const loadTransactions = async () => {
   try {
     const response = await getTransactions();
     if (response.status === 'success') {
-      transactionsData.value = response.data.data.transactions;
+      transactionsData.value = response.data;
       console.log(transactionsData.value);
     } else {
       transactionsData.value = []
@@ -288,6 +453,35 @@ const loadCategories = async () => {
     }
   } catch (err) {
     console.error('Failed to load categories:', err)
+  }
+}
+
+const destroyTransaction = async (transactionId) => {
+  try {
+    const response = await deleteTransaction(transactionId)
+    if (response.status === 'success') {
+      selectedTransaction.value = null
+      await loadTransactions();
+      closeDeleteModal()
+    } else {
+      console.error('Failed to delete transaction:', response.message)
+    }
+  } catch (err) {
+    console.error('Error deleting transaction:', err)
+  }
+}
+
+const editTransaction = async (transaction) => {
+  try {
+    const response = await updateTransaction(transaction._id, transaction)
+    if (response.status === 'success') {
+      await loadTransactions();
+      closeEditModal()
+    } else {
+      console.error('Failed to update transaction:', response.message)
+    }
+  } catch (err) {
+    console.error('Error updating transaction:', err)
   }
 }
 
@@ -313,6 +507,27 @@ const formatDate = (dateString) => {
     month: '2-digit',
     year: 'numeric'
   })
+}
+
+// Modal functions
+const openDeleteModal = (transaction) => {
+  selectedTransaction.value = transaction
+  showDeleteModal.value = true
+}
+
+const openEditModal = (transaction) => {
+  selectedTransaction.value = { ...transaction }
+  showEditModal.value = true
+}
+
+const closeDeleteModal = () => {
+  showDeleteModal.value = false
+  selectedTransaction.value = null
+}
+
+const closeEditModal = () => {
+  showEditModal.value = false
+  selectedTransaction.value = null
 }
 </script>
 
