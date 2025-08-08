@@ -30,7 +30,7 @@
                   <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
                 </svg>
               </div>
-              <input type="search" id="default-search" class="block w-full p-3 ps-10 text-sm text-slate-900 border border-white/20 rounded-xl bg-white/10 backdrop-blur-sm focus:ring-blue-500 focus:border-blue-300 placeholder-white/60 text-white transition-all duration-300" placeholder="Giao dịch, danh mục,..." required />
+              <input type="search" id="default-search" class="block w-full p-3 ps-10 text-sm border border-white/20 rounded-xl bg-white/10 backdrop-blur-sm focus:ring-blue-500 focus:border-blue-300 placeholder-white/60 text-white transition-all duration-300" placeholder="Giao dịch, danh mục,..." required />
               <button type="submit" class="text-white absolute end-2 bottom-1.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-1.5 transition-all duration-300">
                 Tìm kiếm
               </button>
@@ -49,26 +49,23 @@
             <div>
               <button type="button" class="flex text-sm bg-white/10 rounded-full focus:ring-4 focus:ring-white/20 backdrop-blur-sm border border-white/20 hover:border-white/30 transition-all duration-300" aria-expanded="false" data-dropdown-toggle="dropdown-user">
                 <span class="sr-only">Open user menu</span>
-                <img class="w-8 h-8 rounded-full" src="https://flowbite.com/docs/images/people/profile-picture-5.jpg" alt="user photo">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 text-white flex items-center justify-center text-xs font-bold uppercase">
+                  {{ initials }}
+                </div>
               </button>
             </div>
             <div class="z-50 hidden my-4 text-base list-none bg-white/98 backdrop-blur-lg divide-y divide-slate-200 rounded-xl shadow-2xl border border-white/30" id="dropdown-user">
               <div class="px-4 py-3" role="none">
                 <p class="text-sm text-gray-900 dark:text-white" role="none">
-                  Neil Sims
+                  {{ displayName }}
                 </p>
                 <p class="text-sm font-medium text-gray-900 truncate dark:text-gray-300" role="none">
-                  neil.sims@flowbite.com
+                  {{ userEmail }}
                 </p>
               </div>
-              <ul class="py-1" role="none">                <li>
-                  <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white" role="menuitem">Dashboard</a>
-                </li>
+              <ul class="py-1" role="none">
                 <li>
-                  <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white" role="menuitem">Settings</a>
-                </li>
-                <li>
-                  <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white" role="menuitem">Earnings</a>
+                  <router-link to="/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white" role="menuitem">Trang cá nhân</router-link>
                 </li>
                 <li>
                   <a @click="logout" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white cursor-pointer" role="menuitem">Đăng xuất</a>
@@ -147,18 +144,6 @@
          </li>
          <li>
             <router-link 
-              to="/Transactions/add" 
-              class="flex items-center p-3 rounded-xl group transition-all duration-300 backdrop-blur-sm text-slate-700 dark:text-slate-300 hover:bg-gradient-to-r hover:from-green-500 hover:to-emerald-500 hover:text-white border border-transparent hover:border-green-200/50">
-               <div class="w-8 h-8 rounded-lg flex items-center justify-center mr-3 transition-all duration-300 bg-emerald-100 text-emerald-600 group-hover:bg-white/20 group-hover:text-white">
-                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                 </svg>
-               </div>
-               <span class="font-medium">Thêm giao dịch</span>
-            </router-link>
-         </li>
-         <li>
-            <router-link 
               to="/categories" 
               :class="{
                 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg border-0': isCategories,
@@ -196,14 +181,23 @@
             </router-link>
          </li>
          <li>
-            <a href="#" class="flex items-center p-3 rounded-xl group transition-all duration-300 backdrop-blur-sm text-slate-700 dark:text-slate-300 hover:bg-blue-100/70 dark:hover:bg-slate-700/70 border border-transparent hover:border-blue-200/50">
-               <div class="w-8 h-8 rounded-lg flex items-center justify-center mr-3 transition-all duration-300 bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200">
+            <router-link 
+              to="/reports" 
+              :class="{
+                'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg border-0': isReports,
+                'text-slate-700 dark:text-slate-300 hover:bg-blue-100/70 dark:hover:bg-slate-700/70 border border-transparent hover:border-blue-200/50': !isReports
+              }"
+              class="flex items-center p-3 rounded-xl group transition-all duration-300 backdrop-blur-sm">
+               <div :class="{
+                 'bg-white/20 text-white': isReports,
+                 'bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200': !isReports
+               }" class="w-8 h-8 rounded-lg flex items-center justify-center mr-3 transition-all duration-300">
                  <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
                    <path d="M3 3h18v2H3V3zm0 4h18v2H3V7zm0 4h18v2H3v-2zm0 4h12v2H3v-2z"/>
                  </svg>
                </div>
                <span class="font-medium">Báo cáo</span>
-            </a>
+            </router-link>
          </li>
          <li>
             <router-link 
@@ -412,6 +406,13 @@ import {initFlowbite}       from  "flowbite";
 import {useRoute, useRouter}           from  "vue-router";
 import router from "../router";
 import MiniChatWidget from "../components/MiniChatWidget.vue";
+import { useAuth } from "../composables/useAuth";
+
+const { user } = useAuth();
+const displayName = computed(() => user.value?.fullname || user.value?.name || "Người dùng");
+const userEmail = computed(() => user.value?.email || "");
+const initials = computed(() => (displayName.value || 'U').split(' ').map(w => w?.[0]).filter(Boolean).slice(0,2).join('').toUpperCase());
+console.log(user.value);
 
 const route                 =     useRoute();
 const routerInstance        =     useRouter();
@@ -420,6 +421,7 @@ const isTransactions        =     computed(() => route.path === "/transactions")
 const isCategories          =     computed(() => route.path === "/categories");
 const isbudgets             =     computed(() => route.path === "/budgets");
 const isChatBot             =     computed(() => route.path === "/chatbot");
+const isReports             =     computed(() => route.path === "/reports");
 console.log(isHomePage.value);
 
 
@@ -436,6 +438,8 @@ onMounted(() => {
       isDark.value = false;
   }
 
+  // init Flowbite interactions (dropdown)
+  try { initFlowbite(); } catch {}
 })
 
 const toggleDarkMode = () => {

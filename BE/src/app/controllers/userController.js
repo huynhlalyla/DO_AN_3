@@ -106,11 +106,56 @@ const loginUser = async (req, res) => {
     }
 };
 
+const changePassword = async (req, res) => {
+    const { userId, oldPassword, newPassword } = req.body;
+
+    try {
+        const user = await Users.findById(userId);
+        if (!user) {
+            return res.status(404).json({ status: 404, message: 'User not found' });
+        }
+
+        // Kiểm tra mật khẩu cũ
+        if (user.password !== oldPassword) {
+            return res.status(400).json({ status: 400, message: 'Incorrect old password' });
+        }
+
+        // Cập nhật mật khẩu mới
+        user.password = newPassword;
+        await user.save();
+
+        return res.status(200).json({ status: 200, message: 'Password changed successfully' });
+    } catch (error) {
+        return res.status(500).json({ status: 500, message: 'Internal server error' });
+    }
+};
+
+const updateUserProfile = async (req, res) => {
+    const { userId, name, email } = req.body;
+    console.log(userId, name, email);
+    try {
+        const user = await Users.findById(userId);
+        if (!user) {
+            return res.status(404).json({ status: 404, message: 'User not found' });
+        }
+
+        // Cập nhật thông tin người dùng
+        user.name = name;
+        user.email = email;
+        await user.save();
+
+        return res.status(200).json({ status: 200, message: 'Profile updated successfully' });
+    } catch (error) {
+        return res.status(500).json({ status: 500, message: 'Internal server error' });
+    }
+};
 
 module.exports = {
     addUser,
-    authenticateUser, 
-    registerUser, 
+    authenticateUser,
+    registerUser,
+    changePassword,
+    updateUserProfile,
     loginUser,
     getAllUsers
 };

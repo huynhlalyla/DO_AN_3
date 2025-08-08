@@ -232,6 +232,7 @@
                             <div class="pt-4">
                                 <button 
                                     type="submit"
+                                    @click.prevent="submitForm"
                                     class="w-full py-4 bg-gradient-to-r from-purple-500 via-blue-600 to-indigo-600 text-white font-bold rounded-xl shadow-lg transition-all duration-300 flex items-center justify-center space-x-3 hover:from-purple-600 hover:via-blue-700 hover:to-indigo-700">
                                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                                         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
@@ -302,51 +303,13 @@
                             
                             <div class="space-y-3 max-h-64 overflow-y-auto">
                                 <!-- Existing Categories - Static Data -->
-                                <div class="flex items-center space-x-3 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-                                    <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white bg-blue-500">
-                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M7 18c0 1.1.9 2 2 2s2-.9 2-2-.9-2-2-2-2 .9-2 2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12L8.1 13h7.45c.75 0 1.41-.41 1.75-1.03L21.7 4H5.21l-.94-2H1zm16 16c0 1.1.9 2 2 2s2-.9 2-2-.9-2-2-2-2 .9-2 2z"/>
-                                        </svg>
+                                <div v-for="category in categories" :key="category._id" class="flex items-center space-x-3 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                                    <div :style="{backgroundColor: category.color}" class="w-8 h-8 rounded-lg flex items-center justify-center text-white bg-blue-500">
+                                        <span v-html="icons[category.icon].icon"></span>
                                     </div>
                                     <div class="flex-1 min-w-0">
-                                        <p class="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">Mua sắm</p>
-                                        <p class="text-xs text-slate-500 dark:text-slate-400">Chi tiêu</p>
-                                    </div>
-                                </div>
-                                
-                                <div class="flex items-center space-x-3 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-                                    <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white bg-green-500">
-                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.05.82 1.87 2.65 1.87 1.96 0 2.4-.98 2.4-1.59 0-.83-.44-1.61-2.67-2.14-2.48-.6-4.18-1.62-4.18-3.67 0-1.72 1.39-2.84 3.11-3.21V4h2.67v1.95c1.86.45 2.79 1.86 2.85 3.39H14.3c-.05-1.11-.64-1.87-2.22-1.87-1.5 0-2.4.68-2.4 1.64 0 .84.65 1.39 2.67 1.91 2.28.6 4.18 1.58 4.18 3.91 0 1.82-1.33 2.96-3.12 3.16z"/>
-                                        </svg>
-                                    </div>
-                                    <div class="flex-1 min-w-0">
-                                        <p class="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">Lương</p>
-                                        <p class="text-xs text-slate-500 dark:text-slate-400">Thu nhập</p>
-                                    </div>
-                                </div>
-                                
-                                <div class="flex items-center space-x-3 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-                                    <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white bg-yellow-500">
-                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.22.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
-                                        </svg>
-                                    </div>
-                                    <div class="flex-1 min-w-0">
-                                        <p class="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">Di chuyển</p>
-                                        <p class="text-xs text-slate-500 dark:text-slate-400">Chi tiêu</p>
-                                    </div>
-                                </div>
-                                
-                                <div class="flex items-center space-x-3 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-                                    <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white bg-purple-500">
-                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                                        </svg>
-                                    </div>
-                                    <div class="flex-1 min-w-0">
-                                        <p class="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">Giải trí</p>
-                                        <p class="text-xs text-slate-500 dark:text-slate-400">Chi tiêu</p>
+                                        <p class="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">{{ category.name }}</p>
+                                        <p class="text-xs text-slate-500 dark:text-slate-400">{{ category.type === 'income' ? 'Thu nhập' : 'Chi tiêu' }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -368,25 +331,101 @@
                                         <div class="w-3 h-3 bg-red-500 rounded-full"></div>
                                         <span class="text-sm font-medium text-slate-700 dark:text-slate-300">Chi tiêu</span>
                                     </div>
-                                    <span class="font-bold text-red-600 dark:text-red-400">3</span>
+                                    <span class="font-bold text-red-600 dark:text-red-400">{{ categories.filter(category => category.type === 'expense').length }}</span>
                                 </div>
                                 <div class="flex justify-between items-center p-3 bg-white/70 dark:bg-slate-800/70 rounded-lg">
                                     <div class="flex items-center space-x-2">
                                         <div class="w-3 h-3 bg-green-500 rounded-full"></div>
                                         <span class="text-sm font-medium text-slate-700 dark:text-slate-300">Thu nhập</span>
                                     </div>
-                                    <span class="font-bold text-green-600 dark:text-green-400">1</span>
+                                    <span class="font-bold text-green-600 dark:text-green-400">{{ categories.filter(category => category.type === 'income').length }}</span>
                                 </div>
                                 <div class="flex justify-between items-center p-3 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/50 dark:to-blue-900/50 rounded-lg border-2 border-purple-200 dark:border-purple-500/50">
                                     <div class="flex items-center space-x-2">
                                         <div class="w-3 h-3 bg-purple-500 rounded-full animate-pulse"></div>
                                         <span class="text-sm font-bold text-slate-800 dark:text-slate-200">Tổng cộng</span>
                                     </div>
-                                    <span class="font-bold text-purple-600 dark:text-purple-400">4</span>
+                                    <span class="font-bold text-purple-600 dark:text-purple-400">{{ categories.length }}</span>
                                 </div>
                             </div>
                         </div>
                     </div>                
+                </div>
+            </div>
+        </div>
+        
+        <!-- Notification Toast -->
+        <div 
+            v-if="notification.show" 
+            class="fixed top-20 right-6 z-50 transition-all duration-500 ease-in-out transform"
+            :class="notification.show ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'">
+            <div 
+                class="min-w-80 max-w-md bg-white dark:bg-slate-800 rounded-xl shadow-2xl border-l-4 overflow-hidden"
+                :class="{
+                    'border-green-500': notification.type === 'success',
+                    'border-red-500': notification.type === 'error'
+                }">
+                <div class="p-4">
+                    <div class="flex items-start space-x-3">
+                        <!-- Icon -->
+                        <div 
+                            class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center"
+                            :class="{
+                                'bg-green-100 dark:bg-green-900/30': notification.type === 'success',
+                                'bg-red-100 dark:bg-red-900/30': notification.type === 'error'
+                            }">
+                            <!-- Success Icon -->
+                            <svg 
+                                v-if="notification.type === 'success'"
+                                class="w-5 h-5 text-green-600 dark:text-green-400" 
+                                fill="currentColor" 
+                                viewBox="0 0 24 24">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                            </svg>
+                            <!-- Error Icon -->
+                            <svg 
+                                v-if="notification.type === 'error'"
+                                class="w-5 h-5 text-red-600 dark:text-red-400" 
+                                fill="currentColor" 
+                                viewBox="0 0 24 24">
+                                <path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/>
+                            </svg>
+                        </div>
+                        
+                        <!-- Content -->
+                        <div class="flex-1 min-w-0">
+                            <h4 
+                                class="font-semibold text-sm mb-1"
+                                :class="{
+                                    'text-green-800 dark:text-green-200': notification.type === 'success',
+                                    'text-red-800 dark:text-red-200': notification.type === 'error'
+                                }">
+                                {{ notification.title }}
+                            </h4>
+                            <p class="text-sm text-slate-600 dark:text-slate-400">
+                                {{ notification.content }}
+                            </p>
+                        </div>
+                        
+                        <!-- Close Button -->
+                        <button 
+                            @click="hideNotification"
+                            class="flex-shrink-0 p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                            <svg class="w-4 h-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Progress Bar -->
+                <div 
+                    class="h-1 transition-all duration-300 ease-linear"
+                    :class="{
+                        'bg-green-500': notification.type === 'success',
+                        'bg-red-500': notification.type === 'error'
+                    }"
+                    :style="{width: `${notification.progress}%`}">
                 </div>
             </div>
         </div>
@@ -397,12 +436,19 @@
 import { onMounted, ref } from 'vue'
 import { useAuth } from '../composables/useAuth'
 import { icons } from '../composables/useIcons'
+import { getCategories, createCategory } from '../composables/useCategoryAPI'
+import { getTransactions } from '../composables/useTransactionAPI'
+import { useRouter } from 'vue-router'
 
 const { initAuth } = useAuth()
 const colors = ref([
     'red', 'blue', 'green', 'orange', 'purple', 'pink', 'indigo', 'gray'
 ])
 
+const router = useRouter()
+
+const categories = ref([])
+const transactions = ref([])
 
 const selectedColor = ref('red')
 const selectedIcon = ref('food')
@@ -410,16 +456,105 @@ const categoryName = ref('')
 const categoryType = ref('expense')
 const categoryDescription = ref('')
 const budgetLimit = ref(0)
-// Initialize auth
-onMounted(() => {
-  initAuth()
+
+// Notification state
+const notification = ref({
+    show: false,
+    type: 'success', // 'success' or 'error'
+    title: '',
+    content: '',
+    progress: 100
 })
+
+// Initialize auth
+onMounted( async () => {
+//   initAuth();
+  await loadCategories();
+})
+
+const loadCategories = async () => {
+    try {
+        const response = await getCategories()
+        categories.value = response.data.data;
+        console.log('Categories loaded:', categories.value)
+    } catch (error) {
+        console.error('Error loading categories:', error)
+    }
+}
+
+
 
 const formatCurrency = (value) => {
     return new Intl.NumberFormat('vi-VN', {
         style: 'currency',
         currency: 'VND'
     }).format(value)
+}
+
+// Notification functions
+const showNotification = (type, title, content) => {
+    notification.value = {
+        show: true,
+        type: type,
+        title: title,
+        content: content,
+        progress: 100
+    }
+    
+    // Auto hide after 5 seconds with progress bar
+    let progress = 100
+    const interval = setInterval(() => {
+        progress -= 2
+        notification.value.progress = progress
+        
+        if (progress <= 0) {
+            clearInterval(interval)
+            hideNotification()
+        }
+    }, 100)
+}
+
+const hideNotification = () => {
+    notification.value.show = false
+}
+
+// Form submission
+const submitForm = async () => {
+    if (!categoryName.value.trim()) {
+        showNotification('error', 'Lỗi xác thực', 'Vui lòng nhập tên danh mục')
+        return
+    }
+    
+    if (!budgetLimit.value || budgetLimit.value <= 0) {
+        showNotification('error', 'Lỗi xác thực', 'Vui lòng nhập ngân sách giới hạn hợp lệ')
+        return
+    }
+    const newCategory = {
+        name: categoryName.value.trim(),
+        type: categoryType.value,
+        icon: selectedIcon.value,
+        color: selectedColor.value,
+        description: categoryDescription.value.trim(),
+        limit_amount: budgetLimit.value,
+        user_id: useAuth().user.value._id
+    }
+
+    const response = await createCategory(newCategory)
+    if(response.status === 'success') {
+        showNotification('success', 'Thành công!', `Danh mục "${categoryName.value}" đã được tạo thành công`)
+
+        setTimeout(() => {
+            showNotification('success', 'Quay lại', 'Trở lại trang danh mục sau 5s');
+        }, 300)
+
+        setTimeout(() => {
+            router.push('/categories')
+        }, 5000)
+    }
+    else {
+        showNotification('error', 'Lỗi', 'Không thể tạo danh mục. Vui lòng thử lại sau.')
+    }
+
 }
 </script>
 

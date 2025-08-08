@@ -1,6 +1,8 @@
 // Composable để quản lý authentication state
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import axios from 'axios'
+const BASE_API = import.meta.env.VITE_BASE_API
 
 const user = ref(null)
 const isAuthenticated = ref(false)
@@ -18,7 +20,35 @@ export const useAuth = () => {
             isAuthenticated.value = true
         }
     }
-    
+
+    const changePassword = async (oldPassword, newPassword) => {
+        try {
+            const response = await axios.post(`${BASE_API}/user/change-password`, {
+                oldPassword,
+                newPassword,
+                userId: user.value._id
+            })
+            return response.data
+        } catch (error) {
+            console.error('Error changing password:', error)
+            return { status: 'error', message: error.message }
+        }
+    }
+
+    const updateProfile = async (name, email) => {
+        try {
+            const response = await axios.post(`${BASE_API}/user/update-profile`, {
+                name,
+                email,
+                userId: user.value._id
+            })
+            return response.data
+        } catch (error) {
+            console.error('Error updating profile:', error)
+            return { status: 'error', message: error.message }
+        }
+    }
+
     // Đăng nhập
     const login = (userData) => {
         user.value = userData
@@ -36,6 +66,13 @@ export const useAuth = () => {
         router.push('/auth/login')
     }
     
+    // Cập nhật thông tin người dùng trong phiên (sau khi API cập nhật thành công)
+    const updateUser = (partial) => {
+        if (!user.value) return
+        user.value = { ...user.value, ...partial }
+        localStorage.setItem('user', JSON.stringify(user.value))
+    }
+    
     // Khởi tạo khi load
     initAuth()
     
@@ -44,6 +81,9 @@ export const useAuth = () => {
         isAuthenticated: computed(() => isAuthenticated.value),
         login,
         logout,
-        initAuth
+    updateUser,
+        initAuth,
+        changePassword,
+        updateProfile
     }
 }

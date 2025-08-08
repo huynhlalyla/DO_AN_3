@@ -2,7 +2,8 @@ const Transactions = require('../models/Transactions');
 
 async function getAllTransactions(req, res) {
     try {
-        const transactions = await Transactions.find().populate('category_id').populate('user_id');
+        const userId = req.query.user; // Get user ID from query parameters
+        const transactions = await Transactions.find({ user_id: userId }).populate('category_id').populate('user_id');
         res.status(200).json(transactions);
     } catch (error) {
         console.error('Error fetching transactions:', error);

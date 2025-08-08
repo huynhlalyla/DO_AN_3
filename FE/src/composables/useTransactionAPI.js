@@ -1,10 +1,15 @@
 import axios from 'axios'
 const baseAPI = import.meta.env.VITE_BASE_API
-
+import { useAuth } from './useAuth'
 
 async function getTransactions() {
   try {
-    const rs = await axios.get(`${baseAPI}/transaction`)
+    const { user } = useAuth();
+    const rs = await axios.get(`${baseAPI}/transaction?user=${user.value._id}`, {
+      headers: {
+        Authorization: `Bearer ${user.token}`
+      }
+    })
     return { status: 'success', data: rs.data }
   } catch (error) {
     console.error('Error fetching transactions:', error)

@@ -143,6 +143,14 @@
                                         </svg>
                                     </div>
                                 </div>
+                                <router-link 
+                                    to="/categories/add"
+                                    class="inline-flex items-center space-x-2 px-4 py-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all duration-200 border border-blue-200 dark:border-blue-600 hover:border-blue-300 dark:hover:border-blue-500">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                                    </svg>
+                                    <span>Thêm danh mục mới</span>
+                                </router-link>
                             </div>
 
                             <!-- Date Input -->

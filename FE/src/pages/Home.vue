@@ -10,8 +10,48 @@
             </svg>
           </div>
           Giao dịch
-          <small class="text-lg font-medium text-slate-600 dark:text-slate-400">trong hôm nay</small>
+          <small class="text-lg font-medium text-slate-600 dark:text-slate-400">{{ getTimeRangeLabel() }}</small>
         </h1>
+
+        <!-- Time Filter Tabs -->
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex bg-slate-200 dark:bg-slate-700 rounded-lg p-1">
+            <button
+              @click="timeFilter = 'today'"  
+             :class="[
+              {
+                  'bg-white shadow-sm dark:bg-slate-600' : timeFilter === 'today'
+              },
+              'px-4 py-2 text-slate-800 dark:text-white rounded-md font-medium transition-all duration-200'
+            ]">
+              Hôm nay
+            </button>
+            <button
+              @click="timeFilter = 'week'"  
+             :class="[
+              {
+                  'bg-white shadow-sm dark:bg-slate-600' : timeFilter === 'week'
+              },
+              'px-4 py-2 text-slate-800 dark:text-white rounded-md font-medium transition-all duration-200'
+            ]">
+              Tuần này
+            </button>
+            <button
+              @click="timeFilter = 'month'"  
+             :class="[
+              {
+                  'bg-white shadow-sm dark:bg-slate-600' : timeFilter === 'month'
+              },
+              'px-4 py-2 text-slate-800 dark:text-white rounded-md font-medium transition-all duration-200'
+            ]">
+              Tháng này
+            </button>
+          </div>
+          
+          <div class="text-sm text-slate-600 dark:text-slate-400">
+            {{ filteredTransactions.length }} giao dịch
+          </div>
+        </div>
 
         <!-- Financial Summary Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -111,7 +151,8 @@
               <table class="w-full text-sm text-left">
                 <thead class="text-xs text-slate-700 dark:text-slate-300 uppercase bg-slate-50/80 dark:bg-slate-900/50 sticky top-0">
                   <tr>
-                    <th scope="col" class="px-6 py-4 font-semibold">Mô tả</th>
+                    <th scope="col" class="px-6 py-4 font-semibold">Thời gian</th>
+                    <th scope="col" class="px-6 py-4 font-semibold">Ghi chú</th>
                     <th scope="col" class="px-6 py-4 font-semibold">Loại</th>
                     <th scope="col" class="px-6 py-4 font-semibold">Danh mục</th>
                     <th scope="col" class="px-6 py-4 font-semibold">Chi phí</th>
@@ -121,8 +162,8 @@
                   </tr>
                 </thead>                <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
                   <!-- Empty state when no transactions -->
-                  <tr v-if="transactionsData.length === 0">
-                    <td colspan="5" class="px-6 py-12 text-center">
+                  <tr v-if="filteredTransactions.length === 0">
+                    <td colspan="6" class="px-6 py-12 text-center">
                       <div class="flex flex-col items-center justify-center space-y-4">
                         <div class="w-16 h-16 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center">
                           <svg class="w-8 h-8 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -131,46 +172,59 @@
                         </div>
                         <div class="text-center">
                           <h3 class="text-lg font-medium text-slate-700 dark:text-slate-300 mb-2">Chưa có giao dịch nào</h3>
-                          <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">Bạn chưa có giao dịch nào trong hôm nay. Hãy thêm giao dịch đầu tiên!</p>
-                          <button class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all duration-200">
+                          <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">Bạn chưa có giao dịch nào {{ getTimeRangeLabel() }}. Hãy thêm giao dịch đầu tiên!</p>
+                          <router-link to="/transactions/add" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all duration-200">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                             </svg>
                             Thêm giao dịch
-                          </button>
+                          </router-link>
                         </div>
                       </div>
                     </td>
                   </tr>
                   
                   <!-- Transaction rows when data exists -->
-                  <tr v-for="transaction in transactionsData" :key="transaction.date"  
+                  <tr v-for="transaction in filteredTransactions" :key="transaction._id"  
                       class="bg-white/50 dark:bg-transparent hover:bg-slate-50/70 dark:hover:bg-slate-700/50 transition-all duration-200">
-                    <th scope="row" class="px-6 py-4 font-medium text-slate-900 dark:text-white whitespace-nowrap">
-                      {{ transaction.description }}
-                    </th>
+                    <td class="px-6 py-4 text-slate-600 dark:text-slate-400">
+                      <div class="flex flex-col">
+                        <span class="font-medium">{{ formatDate(transaction.date) }}</span>
+                        <span class="text-xs text-slate-500 dark:text-slate-500">{{ formatTime(transaction.date) }}</span>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 text-slate-600 dark:text-slate-400">
+                      <span class="text-sm">{{ transaction.note || 'Không có ghi chú' }}</span>
+                    </td>
                     <td class="px-6 py-4">
                       <span :class="{
-                        'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300': transaction.type === 'expense',
-                        'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300': transaction.type === 'income'
+                        'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300': transaction.category_id?.type === 'expense',
+                        'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300': transaction.category_id?.type === 'income'
                       }" 
                       class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium">
                         <div :class="{
-                          'bg-red-500': transaction.type === 'expense',
-                          'bg-green-500': transaction.type === 'income'
+                          'bg-red-500': transaction.category_id?.type === 'expense',
+                          'bg-green-500': transaction.category_id?.type === 'income'
                         }" class="w-2 h-2 rounded-full mr-2"></div>
-                        {{ transaction.type === 'expense' ? 'Chi tiêu' : 'Thu nhập' }}
+                        {{ transaction.category_id?.type === 'expense' ? 'Chi tiêu' : 'Thu nhập' }}
                       </span>
                     </td>
                     <td class="px-6 py-4 text-slate-900 dark:text-slate-200">
-                      {{ transaction.category }}
+                      <div class="flex items-center gap-2">
+                        <div v-if="transaction.category_id?.icon" 
+                             :style="{backgroundColor: transaction.category_id?.color || '#6b7280'}"
+                             class="w-6 h-6 rounded-lg flex items-center justify-center text-white text-xs">
+                          <span v-html="icons[transaction.category_id.icon]?.icon"></span>
+                        </div>
+                        {{ transaction.category_id?.name || 'Không xác định' }}
+                      </div>
                     </td>
                     <td class="px-6 py-4">
                       <span :class="{
-                        'text-red-600 dark:text-red-400': transaction.type === 'expense',
-                        'text-green-600 dark:text-green-400': transaction.type === 'income'
+                        'text-red-600 dark:text-red-400': transaction.category_id?.type === 'expense',
+                        'text-green-600 dark:text-green-400': transaction.category_id?.type === 'income'
                       }" class="font-semibold">
-                        {{ transaction.type === 'expense' ? '-' : '+' }}{{ transaction.amount.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }) }}
+                        {{ transaction.category_id?.type === 'expense' ? '-' : '+' }}{{ formatCurrency(transaction.amount) }}
                       </span>
                     </td>
                     <td class="px-6 py-4 text-right">
@@ -210,13 +264,13 @@
               </svg>
             </div>
             <h3 class="text-lg font-medium text-slate-700 dark:text-slate-300 mb-2">Chưa có danh mục nào</h3>
-            <p class="text-sm text-slate-500 dark:text-slate-400 text-center mb-4">Khi bạn có giao dịch, các danh mục thường dùng sẽ hiển thị ở đây</p>
-            <button class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all duration-200">
+            <p class="text-sm text-slate-500 dark:text-slate-400 text-center mb-4">Khi bạn có giao dịch {{ getTimeRangeLabel() }}, các danh mục thường dùng sẽ hiển thị ở đây</p>
+            <router-link to="/transactions/add" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all duration-200">
               <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
               </svg>
               Thêm giao dịch đầu tiên
-            </button>
+            </router-link>
           </div>
 
           <!-- Category cards when data exists -->
@@ -228,18 +282,9 @@
                }">
             <div class="flex items-start justify-between mb-3">
               <div class="flex items-center gap-2">
-                <div class="w-8 h-8 rounded-lg flex items-center justify-center"
-                     :class="{
-                       'bg-green-500/20': category.type === 'income',
-                       'bg-red-500/20': category.type === 'expense'
-                     }">
-                  <svg class="w-4 h-4" :class="{
-                         'text-green-600 dark:text-green-400': category.type === 'income',
-                         'text-red-600 dark:text-red-400': category.type === 'expense'
-                       }" fill="currentColor" viewBox="0 0 24 24">
-                    <path v-if="category.type === 'income'" d="M12 2L3.5 12.5h17L12 2zm0 3.5L16.5 11h-9L12 5.5z"/>
-                    <path v-else d="M12 2l8.5 10.5h-17L12 2zm0 3.5L7.5 11h9L12 5.5z"/>
-                  </svg>
+                <div :style="{backgroundColor: category.color}" 
+                     class="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs">
+                  <span v-html="icons[category.icon]?.icon"></span>
                 </div>
                 <span class="text-xs px-2 py-1 rounded-full font-medium"
                       :class="{
@@ -264,19 +309,19 @@
                   'text-green-600 dark:text-green-400': category.type === 'income',
                   'text-red-600 dark:text-red-400': category.type === 'expense'
                 }">
-                  {{ category.type === 'expense' ? '-' : '+' }}{{ category.totalAmount.toLocaleString('vi-VN') }}₫
+                  {{ category.type === 'expense' ? '-' : '+' }}{{ formatCurrency(category.totalAmount) }}
                 </span>
               </div>
               
-              <!-- Progress bar for expense categories only -->
-              <div v-if="category.type === 'expense'" class="space-y-1">
+              <!-- Progress bar for both expense and income categories -->
+              <div class="space-y-1">
                 <div class="flex items-center justify-between text-xs">
-                  <span class="text-slate-600 dark:text-slate-400">Tỷ lệ chi tiêu</span>
+                  <span class="text-slate-600 dark:text-slate-400">{{ getProgressLabel(category.type) }}</span>
                   <span class="font-medium text-slate-700 dark:text-slate-300">{{ category.percentage }}%</span>
                 </div>
                 <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
-                  <div class="bg-gradient-to-r from-red-500 to-pink-500 h-2 rounded-full transition-all duration-300" 
-                       :style="{ width: category.percentage + '%' }"></div>
+                  <div :class="['h-2 rounded-full transition-all duration-300', 'bg-gradient-to-r', getProgressBarColor(category.percentage, category.type)]"
+                       :style="{ width: Math.min(category.percentage, 100) + '%' }"></div>
                 </div>
               </div>
             </div>
@@ -292,25 +337,84 @@
 <script setup>
 import {  onMounted, 
           ref,
-          computed 
+          computed,
+          watch,
+          nextTick 
         }                       from    'vue';
 import ApexCharts               from    'apexcharts';
 import { initFlowbite }         from    "flowbite";
 import DialOption               from    '../components/DialOption.vue';
+import { useAuth }              from    '../composables/useAuth';
+import { getCategories }        from    '../composables/useCategoryAPI';
+import { getTransactions }      from    '../composables/useTransactionAPI';
+import { icons }                from    '../composables/useIcons';
 
+const { initAuth }              =       useAuth();
 
 const transactionsData          =       ref([]);
+const categories                =       ref([]);
+const timeFilter                =       ref('today'); // 'today', 'week', 'month'
+
+// Helper functions for date filtering
+const isToday = (date) => {
+  const today = new Date();
+  const transactionDate = new Date(date);
+  return transactionDate.toDateString() === today.toDateString();
+};
+
+const isThisWeek = (date) => {
+  const today = new Date();
+  const transactionDate = new Date(date);
+  const startOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
+  const endOfWeek = new Date(today.setDate(today.getDate() - today.getDay() + 6));
+  startOfWeek.setHours(0, 0, 0, 0);
+  endOfWeek.setHours(23, 59, 59, 999);
+  return transactionDate >= startOfWeek && transactionDate <= endOfWeek;
+};
+
+const isThisMonth = (date) => {
+  const today = new Date();
+  const transactionDate = new Date(date);
+  return transactionDate.getMonth() === today.getMonth() && 
+         transactionDate.getFullYear() === today.getFullYear();
+};
+
+const getTimeRangeLabel = () => {
+  switch (timeFilter.value) {
+    case 'today': return 'trong hôm nay';
+    case 'week': return 'trong tuần này';
+    case 'month': return 'trong tháng này';
+    default: return 'trong hôm nay';
+  }
+};
+
+// Filtered transactions based on time filter
+const filteredTransactions = computed(() => {
+  return transactionsData.value.filter(transaction => {
+    const transactionDate = transaction.date;
+    switch (timeFilter.value) {
+      case 'today':
+        return isToday(transactionDate);
+      case 'week':
+        return isThisWeek(transactionDate);
+      case 'month':
+        return isThisMonth(transactionDate);
+      default:
+        return isToday(transactionDate);
+    }
+  });
+});
 
 // Computed properties for financial calculations
 const totalIncome = computed(() => {
-  return transactionsData.value
-    .filter(transaction => transaction.type === 'income')
+  return filteredTransactions.value
+    .filter(transaction => transaction.category_id?.type === 'income')
     .reduce((total, transaction) => total + transaction.amount, 0);
 });
 
 const totalExpense = computed(() => {
-  return transactionsData.value
-    .filter(transaction => transaction.type === 'expense')
+  return filteredTransactions.value
+    .filter(transaction => transaction.category_id?.type === 'expense')
     .reduce((total, transaction) => total + transaction.amount, 0);
 });
 
@@ -319,26 +423,31 @@ const netBalance = computed(() => {
 });
 
 const incomeCount = computed(() => {
-  return transactionsData.value.filter(transaction => transaction.type === 'income').length;
+  return filteredTransactions.value.filter(transaction => transaction.category_id?.type === 'income').length;
 });
 
 const expenseCount = computed(() => {
-  return transactionsData.value.filter(transaction => transaction.type === 'expense').length;
+  return filteredTransactions.value.filter(transaction => transaction.category_id?.type === 'expense').length;
 });
 
 const totalTransactions = computed(() => {
-  return transactionsData.value.length;
+  return filteredTransactions.value.length;
 });
 
 // Computed property for popular categories
 const popularCategories = computed(() => {
-  // Group transactions by category
-  const categoryGroups = transactionsData.value.reduce((groups, transaction) => {
-    const key = `${transaction.category}-${transaction.type}`;
+  // Group transactions by category using filtered transactions
+  const categoryGroups = filteredTransactions.value.reduce((groups, transaction) => {
+    const categoryName = transaction.category_id?.name || 'Không xác định';
+    const categoryType = transaction.category_id?.type || 'expense';
+    const key = `${categoryName}-${categoryType}`;
+    
     if (!groups[key]) {
       groups[key] = {
-        name: transaction.category,
-        type: transaction.type,
+        name: categoryName,
+        type: categoryType,
+        icon: transaction.category_id?.icon || 'other',
+        color: transaction.category_id?.color || '#6b7280',
         transactions: [],
         totalAmount: 0,
         transactionCount: 0
@@ -350,113 +459,52 @@ const popularCategories = computed(() => {
     return groups;
   }, {});
 
-  // Convert to array and calculate percentages for expense categories
-  const categories = Object.values(categoryGroups);
+  // Convert to array and calculate percentages for both expense and income categories
+  const categoriesArray = Object.values(categoryGroups);
   
-  // Calculate percentage for expense categories
-  categories.forEach(category => {
+  // Calculate percentage for both expense and income categories
+  categoriesArray.forEach(category => {
     if (category.type === 'expense') {
-      category.percentage = totalExpense.value > 0 
-        ? Math.round((category.totalAmount / totalExpense.value) * 100)
+      category.percentage = totalExpense.value > 0
+        ? ((category.totalAmount / totalExpense.value) * 100).toFixed(2)
+        : 0;
+    } else if (category.type === 'income') {
+      category.percentage = totalIncome.value > 0
+        ? ((category.totalAmount / totalIncome.value) * 100).toFixed(2)
         : 0;
     }
   });
 
   // Sort by transaction count (most used first) and return top categories
-  return categories
+  return categoriesArray
     .sort((a, b) => b.transactionCount - a.transactionCount)
     .slice(0, 8); // Show top 8 categories
 });
 
-onMounted(() => {
-  // Khởi tạo Flowbite
-  initFlowbite();  
+// Computed properties for chart data
+const chartData = computed(() => {
+  const countExpense = filteredTransactions.value.reduce((total, transaction) => {
+    return transaction.category_id?.type === "expense" ? total + 1 : total;
+  }, 0);
+  const countIncome = filteredTransactions.value.reduce((total, transaction) => {
+    return transaction.category_id?.type === "income" ? total + 1 : total;
+  }, 0);
   
-  // Dữ liệu giả cho giao dịch (Mock data)
-  transactionsData.value = [
-    { type: "expense", amount: 100000, date: "2025-07-01", description: "Mua sắm quần áo", category: "Mua sắm" },
-    { type: "income", amount: 2500000, date: "2025-06-30", description: "Lương tháng 6", category: "Lương" },
-    { type: "expense", amount: 150000, date: "2025-07-01", description: "Ăn trưa", category: "Ăn uống" },
-    { type: "expense", amount: 50000, date: "2025-07-01", description: "Xe bus", category: "Di chuyển" },
-    { type: "expense", amount: 300000, date: "2025-06-30", description: "Tiền điện", category: "Hóa đơn" },
-    { type: "income", amount: 200000, date: "2025-06-29", description: "Bán đồ cũ", category: "Thu nhập khác" },
-    { type: "expense", amount: 80000, date: "2025-06-29", description: "Cafe với bạn", category: "Giải trí" },
-    { type: "expense", amount: 120000, date: "2025-06-28", description: "Mua sách", category: "Giáo dục" },
-  ]
+  return { countExpense, countIncome };
+});
 
+// Chart rendering function
+const renderChart = () => {
+  const chartElement = document.getElementById("pie-chart");
+  if (!chartElement) return;
 
-  const countExpense            =       transactionsData.value.reduce((total, transaction) => {
-    return transaction.type     ===     "expense" ? total + 1 : total;
-  }, 0);
-  const countIncome             =       transactionsData.value.reduce((total, transaction) => {
-    return transaction.type     ===     "income" ? total + 1 : total;
-  }, 0);
-
-const getChartOptions           =       () => {
-  return {
-    series: [countExpense, countIncome],
-    colors: ["#EF4444", "#10B981"], // Red for expense, Green for income - matching our theme
-    chart: {
-      height: 280,
-      width: "100%",
-      type: "pie",
-    },
-    stroke: {
-      colors: ["white"],
-      lineCap: "",
-    },
-    plotOptions: {
-      pie: {
-        labels: {
-          show: true,
-        },
-        size: "100%",
-        dataLabels: {
-          offset: -25
-        }
-      },
-    },
-    labels: ["Chi tiêu", "Thu nhập"],
-    dataLabels: {
-      enabled: true,
-      style: {
-        fontFamily: "Inter, sans-serif",
-        fontSize: "14px",
-        fontWeight: "600",
-        colors: ["#ffffff"]
-      },
-    },
-    legend: {
-      position: "bottom",
-      fontFamily: "Inter, sans-serif",
-      fontSize: "14px",
-      fontWeight: "500",
-      labels: {
-        colors: "#64748B"
-      }
-    },
-    responsive: [{
-      breakpoint: 480,
-      options: {
-        chart: {
-          height: 200
-        },
-        legend: {
-          position: "bottom"
-        }
-      }
-    }]
-  }
-}
-
-if (document.getElementById("pie-chart") && typeof ApexCharts !== 'undefined') {
-  // Only render chart if there is data
-  if (countExpense > 0 || countIncome > 0) {
-    const chart = new ApexCharts(document.getElementById("pie-chart"), getChartOptions());
-    chart.render();
-  } else {
+  // Clear previous chart content
+  chartElement.innerHTML = '';
+  
+  const { countExpense, countIncome } = chartData.value;
+  
+  if (countExpense === 0 && countIncome === 0) {
     // Show empty state for chart
-    const chartElement = document.getElementById("pie-chart");
     chartElement.innerHTML = `
       <div class="flex flex-col items-center justify-center h-full py-8">
         <div class="w-12 h-12 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center mb-4">
@@ -467,9 +515,163 @@ if (document.getElementById("pie-chart") && typeof ApexCharts !== 'undefined') {
         <p class="text-sm text-slate-500 dark:text-slate-400 text-center">Chưa có dữ liệu<br>để hiển thị biểu đồ</p>
       </div>
     `;
+    return;
   }
-}
 
+  // Render chart with data
+  const getChartOptions = () => {
+    return {
+      series: [countExpense, countIncome],
+      colors: ["#EF4444", "#10B981"], // Red for expense, Green for income - matching our theme
+      chart: {
+        height: 280,
+        width: "100%",
+        type: "pie",
+      },
+      stroke: {
+        colors: ["white"],
+        lineCap: "",
+      },
+      plotOptions: {
+        pie: {
+          labels: {
+            show: true,
+          },
+          size: "100%",
+          dataLabels: {
+            offset: -25
+          }
+        },
+      },
+      labels: ["Chi tiêu", "Thu nhập"],
+      dataLabels: {
+        enabled: true,
+        style: {
+          fontFamily: "Inter, sans-serif",
+          fontSize: "14px",
+          fontWeight: "600",
+          colors: ["#ffffff"]
+        },
+      },
+      legend: {
+        position: "bottom",
+        fontFamily: "Inter, sans-serif",
+        fontSize: "14px",
+        fontWeight: "500",
+        labels: {
+          colors: "#64748B"
+        }
+      },
+      responsive: [{
+        breakpoint: 480,
+        options: {
+          chart: {
+            height: 200
+          },
+          legend: {
+            position: "bottom"
+          }
+        }
+      }]
+    };
+  };
+
+  if (typeof ApexCharts !== 'undefined') {
+    const chart = new ApexCharts(chartElement, getChartOptions());
+    chart.render();
+  }
+};
+const loadCategories = async () => {
+  try {
+    const response = await getCategories();
+    if (response.status === 'success') {
+      categories.value = response.data.data;
+    } else {
+      console.error('Failed to load categories:', response.message);
+    }
+  } catch (error) {
+    console.error('Error loading categories:', error);
+  }
+};
+
+const loadTransactions = async () => {
+  try {
+    const response = await getTransactions();
+    if (response.status === 'success') {
+      transactionsData.value = response.data;
+    } else {
+      console.error('Failed to load transactions:', response.message);
+    }
+  } catch (error) {
+    console.error('Error loading transactions:', error);
+  }
+};
+
+// Format currency helper
+const formatCurrency = (value) => {
+  return new Intl.NumberFormat('vi-VN', {
+    style: 'currency',
+    currency: 'VND',
+  }).format(value);
+};
+
+// Format date helper
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('vi-VN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
+};
+
+// Format time helper
+const formatTime = (dateString) => {
+  const date = new Date(dateString);
+  return date.toLocaleTimeString('vi-VN', {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
+
+// Get progress bar color based on percentage and type
+const getProgressBarColor = (percentage, type) => {
+  if (type === 'expense') {
+    // Chi tiêu: Xanh (thấp) -> Cam (trung bình) -> Đỏ (cao)
+    if (percentage <= 30) return 'from-green-500 to-emerald-500';
+    if (percentage <= 70) return 'from-orange-500 to-amber-500';
+    return 'from-red-500 to-pink-500';
+  } else {
+    // Thu nhập: Đỏ (thấp) -> Cam (trung bình) -> Xanh (cao)
+    if (percentage <= 30) return 'from-red-500 to-pink-500';
+    if (percentage <= 70) return 'from-orange-500 to-amber-500';
+    return 'from-green-500 to-emerald-500';
+  }
+};
+
+// Get progress text label
+const getProgressLabel = (type) => {
+  return type === 'expense' ? 'Tỷ lệ chi tiêu' : 'Tỷ lệ thu nhập';
+};
+
+// Watch for changes in filtered transactions or time filter to re-render chart
+watch([filteredTransactions, timeFilter], async () => {
+  await nextTick();
+  renderChart();
+}, { deep: true });
+
+onMounted(async () => {
+  // Khởi tạo auth và Flowbite
+  initAuth();
+  initFlowbite();  
+  
+  // Load dữ liệu thật từ API
+  await loadCategories();
+  await loadTransactions();
+  
+  // Render chart after data is loaded
+  await nextTick();
+  renderChart();
 });
 </script>
 

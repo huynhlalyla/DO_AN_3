@@ -11,6 +11,9 @@ import MainLayout                       from '../layouts/MainLayout.vue'
 import NoneLayout                       from '../layouts/NoneLayout.vue'
 import AuthLayout                       from '../layouts/AuthLayout.vue'
 import AddTransaction                   from '../pages/AddTransaction.vue'
+import Budgets from '../pages/Budgets.vue'
+import Profile from '../pages/Profile.vue'
+import Reports from '../pages/Reports.vue'
 const routes = [
     {
         name: 'Home',
@@ -86,6 +89,51 @@ const routes = [
                 path: ':slug',
                 name: 'CategoriesDetailPage',
                 component: Categories,
+                meta: {
+                    requiresAuth: true,
+                    layout: MainLayout
+                }
+            }
+        ]
+    },
+    {
+        name: Budgets,
+        path: '/budgets',
+        children: [
+            {
+                path: '',
+                name: 'BudgetsPage',
+                component: Budgets,
+                meta: {
+                    requiresAuth: true,
+                    layout: MainLayout
+                }
+            }
+        ]
+    },
+    {
+        name: 'Reports',
+        path: '/reports',
+        children: [
+            {
+                path: '',
+                name: 'ReportsPage',
+                component: Reports,
+                meta: {
+                    requiresAuth: true,
+                    layout: MainLayout
+                }
+            }
+        ]
+    },
+    {
+        name: 'Profile',
+        path: '/profile',
+        children: [
+            {
+                path: '',
+                name: 'ProfilePage',
+                component: Profile,
                 meta: {
                     requiresAuth: true,
                     layout: MainLayout
