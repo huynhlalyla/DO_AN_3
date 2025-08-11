@@ -111,6 +111,7 @@ import { useAuth } from '../composables/useAuth'
 import { getCategories } from '../composables/useCategoryAPI'
 import { getTransactions } from '../composables/useTransactionAPI'
 import axios from 'axios'
+import { useToast } from '../composables/useToast'
 const baseAPI = import.meta.env.VITE_BASE_API || 'http://localhost:3000'
 const { user, logout, initAuth, updateUser } = useAuth()
 
@@ -163,15 +164,18 @@ const formatMoneyCompact = (v, threshold = 10_000_000) => {
 }
 
 const toggleEdit = () => { isEditing.value = !isEditing.value }
+const { push: pushToast } = useToast()
+
 const saveProfile = async () => {
   try {
     const payload = { userId: user.value?._id, name: form.value.name, email: form.value.email }
     await axios.post(`${baseAPI}/user/update-profile`, payload)
-    // update local session so UI and reload show new data
     updateUser({ name: form.value.name, email: form.value.email })
     isEditing.value = false
+    pushToast('Cập nhật hồ sơ thành công', 'success')
   } catch (e) {
     console.error('Update profile failed', e)
+    pushToast('Cập nhật hồ sơ thất bại', 'error')
   }
 }
 const changePass = async () => {
@@ -185,9 +189,13 @@ const changePass = async () => {
     })
     if (res?.data?.status === 200) {
       clearSecurity()
+      pushToast('Đổi mật khẩu thành công', 'success')
+    } else {
+      pushToast('Đổi mật khẩu thất bại', 'error')
     }
   } catch (e) {
     console.error('Change password failed', e)
+    pushToast('Đổi mật khẩu thất bại', 'error')
   }
 }
 const clearSecurity = () => { security.value = { current: '', newPass: '' } }

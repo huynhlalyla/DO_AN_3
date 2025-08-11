@@ -102,9 +102,9 @@
                 @click="chartTab = 'expense'"  
                :class="[
                 {
-                    'bg-white shadow-sm' : chartTab === 'expense'
+                    'bg-white dark:bg-slate-800 dark:text-slate-200 shadow-sm' : chartTab === 'expense'
                 },
-                'px-4 py-2 dark:bg-slate-600 text-slate-800 dark:text-white rounded-md font-medium'
+                'px-4 py-2 text-slate-800 dark:text-white rounded-md font-medium'
               ]">
                 Chi tiêu
               </button>
@@ -112,9 +112,9 @@
                 @click="chartTab = 'income'"  
                :class="[
                 {
-                    'bg-white shadow-sm' : chartTab === 'income'
+                    'bg-white dark:bg-slate-800 dark:text-slate-200 shadow-sm' : chartTab === 'income'
                 },
-                'px-4 py-2 dark:bg-slate-600 text-slate-800 dark:text-white rounded-md font-medium'
+                'px-4 py-2 text-slate-800 dark:text-white rounded-md font-medium'
               ]">
                 Thu nhập
               </button>
@@ -131,15 +131,41 @@
       <!-- Categories Grid -->
       <div class="bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/30 dark:border-slate-700/50 overflow-hidden">
         <div class="bg-gradient-to-r from-slate-100/80 to-slate-200/80 dark:from-slate-700/80 dark:to-slate-800/80 p-6 border-b border-slate-200 dark:border-slate-700">
-          <div class="flex items-center justify-between">
+          <div class="flex items-center justify-between gap-4 flex-wrap">
             <h3 class="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
               <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
               </svg>
               Danh sách danh mục
             </h3>
-            <div class="text-sm text-slate-600 dark:text-slate-400">
-              {{ categories.length }} danh mục
+            <div class="flex items-center gap-4 flex-wrap">
+              <!-- Status Filter -->
+              <div class="flex bg-slate-200 dark:bg-slate-700 rounded-lg p-1">
+                <button
+                  @click="categoryStatusFilter = 'all'"
+                  :class="[
+                    {'bg-white dark:bg-slate-800 dark:text-slate-200 shadow-sm': categoryStatusFilter === 'all'},
+                    'px-3 py-1.5 text-xs md:text-sm font-medium rounded-md text-slate-700 dark:text-slate-200 transition-all'
+                  ]"
+                >Tất cả</button>
+                <button
+                  @click="categoryStatusFilter = 'active'"
+                  :class="[
+                    {'bg-white dark:bg-slate-800 dark:text-slate-200 shadow-sm': categoryStatusFilter === 'active'},
+                    'px-3 py-1.5 text-xs md:text-sm font-medium rounded-md text-slate-700 dark:text-slate-200 transition-all'
+                  ]"
+                >Hoạt động</button>
+                <button
+                  @click="categoryStatusFilter = 'inactive'"
+                  :class="[
+                    {'bg-white dark:bg-slate-800 dark:text-slate-200 shadow-sm': categoryStatusFilter === 'inactive'},
+                    'px-3 py-1.5 text-xs md:text-sm font-medium rounded-md text-slate-700 dark:text-slate-200 transition-all'
+                  ]"
+                >Ngừng hoạt động</button>
+              </div>
+              <div class="text-sm text-slate-600 dark:text-slate-400">
+                {{ displayedCategories.length }} danh mục
+              </div>
             </div>
           </div>
         </div>
@@ -147,7 +173,7 @@
         <div class="p-6">
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <!-- Ăn uống - Chi tiêu -->
-            <div v-for="category in categories" 
+            <div v-for="category in displayedCategories" 
             :class="[
               {
                 'bg-gradient-to-br from-pink-50 to-red-50 dark:from-pink-900/20 dark:to-red-900/20 border-pink-200/50 dark:border-pink-700/50' : category.type === 'expense',
@@ -199,6 +225,10 @@
                   <div class="flex items-center justify-between">
                     <span class="text-sm text-slate-600 dark:text-slate-400">Hiện tại</span>
                     <span class="font-medium text-red-600 dark:text-red-400">{{ formatCurrency(solveCategory(category._id).totalAmount) }}</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm text-slate-600 dark:text-slate-400">Chu kỳ</span>
+                    <span class="text-xs font-medium text-slate-500 dark:text-slate-400">{{ formatDate(category.start_date) }} → {{ formatDate(category.end_date) }}</span>
                   </div>
                   <div class="flex items-center justify-between">
                     <span class="text-sm text-slate-600 dark:text-slate-400">Trạng thái</span>
@@ -500,16 +530,20 @@
 import { onMounted, onUnmounted, ref, watch, computed } from 'vue'
 import { useAuth } from '../composables/useAuth'
 import { getCategories, deleteCategory, editCategory } from '../composables/useCategoryAPI'
+import { useToast } from '../composables/useToast'
 import { getTransactions } from '../composables/useTransactionAPI'
 import { icons } from '../composables/useIcons'
 import ApexCharts from 'apexcharts'
 
 const { initAuth } = useAuth()
+const { push: pushToast } = useToast()
 
 
 const categories = ref([])
 const transactions = ref([])
 const totalActiveCategories = ref(0)
+// UI filter state for category list (all | active | inactive)
+const categoryStatusFilter = ref('all')
 
 // Chart tab state
 const chartTab = ref('expense')
@@ -621,11 +655,28 @@ const solveCategory = (category_id) => {
   }
 }
 
+// Displayed categories according to status filter
+const displayedCategories = computed(() => {
+  if (!categories.value) return []
+  if (categoryStatusFilter.value === 'all') return categories.value
+  return categories.value.filter(c => {
+    const analysis = solveCategory(c._id)
+    return categoryStatusFilter.value === 'active' ? analysis.isActive : !analysis.isActive
+  })
+})
+
 const formatCurrency = (value) => {
   return new Intl.NumberFormat('vi-VN', {
     style: 'currency',
     currency: 'VND',
   }).format(value)
+}
+
+const formatDate = (value) => {
+  if(!value) return '-'
+  const d = new Date(value)
+  if(isNaN(d)) return '-'
+  return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
 
 // Modal functions
@@ -650,9 +701,11 @@ const confirmDelete = async () => {
     if (response.status === 'success') {
       await loadCategories() // Reload categories after deletion
       closeDeleteModal()
+      pushToast('Xóa danh mục thành công', 'success')
     }
   } catch (error) {
     console.error('Error deleting category:', error)
+    pushToast('Xóa danh mục thất bại', 'error')
   }
 }
 
@@ -697,85 +750,21 @@ const saveEdit = async () => {
     description,
     limit_amount
   }
+  console.log(updatedCategory);
   try {
     const response = await editCategory(category_id, updatedCategory)
     if (response.status === 'success') {
       await loadCategories() // Reload categories after edit
       closeEditModal()
+      pushToast('Cập nhật danh mục thành công', 'success')
     } else {
       console.error('Failed to update category:', response.message)
+      pushToast('Cập nhật danh mục thất bại', 'error')
     }
   } catch (error) {
     console.error('Error updating category:', error)
+    pushToast('Cập nhật danh mục thất bại', 'error')
   }
-}
-
-// Chart helper functions
-const getLowUsageCount = () => {
-  return filteredCategories.value.filter(cat => 
-    parseFloat(solveCategory(cat._id).percentage) < 50
-  ).length
-}
-
-const getMediumUsageCount = () => {
-  return filteredCategories.value.filter(cat => {
-    const percentage = parseFloat(solveCategory(cat._id).percentage)
-    return percentage >= 50 && percentage <= 80
-  }).length
-}
-
-const getHighUsageCount = () => {
-  return filteredCategories.value.filter(cat => 
-    parseFloat(solveCategory(cat._id).percentage) > 80
-  ).length
-}
-
-const getTopCategories = () => {
-  return filteredCategories.value
-    .sort((a, b) => parseFloat(solveCategory(b._id).percentage) - parseFloat(solveCategory(a._id).percentage))
-    .slice(0, 3)
-}
-
-const getAverageUsage = () => {
-  if (filteredCategories.value.length === 0) return 0
-  const total = filteredCategories.value.reduce((sum, cat) => 
-    sum + parseFloat(solveCategory(cat._id).percentage), 0
-  )
-  return (total / filteredCategories.value.length).toFixed(1)
-}
-
-const getMaxUsage = () => {
-  if (filteredCategories.value.length === 0) return 0
-  return Math.max(...filteredCategories.value.map(cat => 
-    parseFloat(solveCategory(cat._id).percentage)
-  )).toFixed(1)
-}
-
-const getMinUsage = () => {
-  if (filteredCategories.value.length === 0) return 0
-  return Math.min(...filteredCategories.value.map(cat => 
-    parseFloat(solveCategory(cat._id).percentage)
-  )).toFixed(1)
-}
-
-const getTotalAmount = () => {
-  return filteredCategories.value.reduce((sum, cat) => 
-    sum + solveCategory(cat._id).totalAmount, 0
-  )
-}
-
-// Calculate bar height for chart (in pixels)
-const calculateBarHeight = (percentage) => {
-  // Chart container height is approximately 280px (h-80 - padding)
-  // Available height for bars is about 240px (excluding labels)
-  const maxHeight = 240
-  const minHeight = 8 // Minimum height for visibility
-  
-  // Convert percentage to pixels
-  let height = (parseFloat(percentage) / 100) * maxHeight
-  
-  // Ensure minimum height for very small values
-  return Math.max(height, minHeight)
 }
 
 // ===== ApexCharts: Bar chart (usage by category) =====

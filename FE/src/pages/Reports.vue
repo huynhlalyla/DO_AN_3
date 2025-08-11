@@ -1,11 +1,17 @@
 <template>
   <div class="p-6 max-w-7xl mx-auto">
-    <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center justify-between mb-6 flex-wrap gap-4">
       <div>
-        <h1 class="text-2xl font-bold text-slate-800 dark:text-white">Báo cáo tháng {{ monthLabel }}</h1>
-        <p class="text-slate-500 dark:text-slate-400 text-sm">Tổng hợp thu nhập và chi tiêu trong tháng hiện tại</p>
+        <h1 class="text-2xl font-bold text-slate-800 dark:text-slate-200">Báo cáo tháng {{ monthLabel }}</h1>
+        <p class="text-slate-500 dark:text-slate-400 text-sm">Tổng hợp thu nhập và chi tiêu trong tháng {{ monthLabel }}</p>
       </div>
-      <div class="flex gap-2">
+      <div class="flex gap-2 items-center flex-wrap">
+        <div class="flex items-center gap-2 bg-slate-100 dark:bg-slate-700/60 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-600">
+          <span class="text-xs font-medium text-slate-600 dark:text-slate-300">Tháng</span>
+          <select v-model="selectedMonth" class="bg-transparent text-sm font-semibold text-slate-800 dark:text-slate-100 focus:outline-none">
+            <option v-for="m in monthOptions" :key="m.value" :value="m.value" class="text-slate-800 dark:text-slate-900">{{ m.label }}</option>
+          </select>
+        </div>
         <button @click="exportCSV" class="px-4 py-2 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-100 hover:bg-slate-300 dark:hover:bg-slate-600">Xuất CSV</button>
         <button @click="exportPDF" class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Xuất PDF</button>
       </div>
@@ -54,8 +60,8 @@
           <h2 class="font-semibold text-slate-800 dark:text-white">Chi tiết giao dịch tháng</h2>
         </div>
         <div class="overflow-auto">
-          <table class="min-w-full text-sm">
-            <thead class="text-left text-slate-500 border-b border-slate-200 dark:border-slate-700">
+          <table class="min-w-full text-sm dark:text-slate-200">
+            <thead class="text-left text-slate-500 border-b border-slate-200 dark:border-slate-700 dark:text-slate-200">
               <tr>
                 <th class="py-2 pr-4">Ngày</th>
                 <th class="py-2 pr-4">Loại</th>
@@ -89,18 +95,29 @@ import { getTransactions } from '../composables/useTransactionAPI'
 import { getCategories } from '../composables/useCategoryAPI'
 import jsPDF from 'jspdf'
 import '../fonts/Roboto-Regular-normal.js';
+import { useToast } from '../composables/useToast'
 const transactions = ref([])
 const categories = ref([])
+const { push: pushToast } = useToast()
 
-const today = new Date()
-const month = today.getMonth()
-const year = today.getFullYear()
-const monthLabel = computed(() => `${String(month+1).padStart(2,'0')}/${year}`)
+// Month selection (current year up to current month)
+const now = new Date()
+const year = now.getFullYear()
+const selectedMonth = ref(now.getMonth())
+const monthOptions = computed(() => {
+  const currentMonth = now.getMonth()
+  const arr = []
+  for (let m=0; m<=currentMonth; m++) {
+    arr.push({ value: m, label: `Tháng ${String(m+1).padStart(2,'0')}/${year}` })
+  }
+  return arr.reverse() // latest first
+})
+const monthLabel = computed(() => `${String(selectedMonth.value+1).padStart(2,'0')}/${year}`)
 
 const monthTx = computed(() => {
   return transactions.value.filter(t => {
     const d = new Date(t?.date || t?.createdAt)
-    return !isNaN(d) && d.getMonth()===month && d.getFullYear()===year
+    return !isNaN(d) && d.getMonth()===selectedMonth.value && d.getFullYear()===year
   }).sort((a,b) => new Date(a?.date||a?.createdAt) - new Date(b?.date||b?.createdAt))
 })
 
@@ -118,7 +135,7 @@ const barChartEl = ref(null)
 let lineChart, barChart
 
 const buildDailySeries = () => {
-  const daysInMonth = new Date(year, month+1, 0).getDate()
+  const daysInMonth = new Date(year, selectedMonth.value+1, 0).getDate()
   const x = Array.from({length: daysInMonth}, (_,i)=> i+1)
   const incomeByDay = Array(daysInMonth).fill(0)
   const expenseByDay = Array(daysInMonth).fill(0)
@@ -138,7 +155,7 @@ const renderOrUpdateLine = () => {
     chart: { type: 'area', height: 320, toolbar: { show: true } },
     stroke: { curve: 'smooth', width: 2 },
     dataLabels: { enabled: false },
-    xaxis: { categories: x.map(d=>`${two(d)}/${two(month+1)}`), labels: { style: { colors: '#94a3b8' } } },
+  xaxis: { categories: x.map(d=>`${two(d)}/${two(selectedMonth.value+1)}`), labels: { style: { colors: '#94a3b8' } } },
     yaxis: { labels: { formatter: (v)=> new Intl.NumberFormat('vi-VN').format(v) } },
     tooltip: { y: { formatter: (v)=> formatCurrency(v) } },
     series: [
@@ -193,9 +210,10 @@ const exportCSV = () => {
   const blob = new Blob([bom + sep + csvBody], { type: 'text/csv;charset=utf-8;' })
   const a = document.createElement('a')
   a.href = URL.createObjectURL(blob)
-  a.download = `report_${year}-${two(month+1)}.csv`
+  a.download = `report_${year}-${two(selectedMonth.value+1)}.csv`
   a.click()
   URL.revokeObjectURL(a.href)
+  pushToast('Xuất CSV thành công', 'success')
 }
 
 const exportPDF = async () => {
@@ -208,7 +226,7 @@ const exportPDF = async () => {
 
     // Title (ASCII safe)
     pdf.setFontSize(16)
-    pdf.text(`Báo cáo tháng ${monthLabel.value}`, 10, 12)
+  pdf.text(`Báo cáo tháng ${monthLabel.value}`, 10, 12)
 
     // KPIs (ASCII safe labels)
     pdf.setFontSize(11)
@@ -300,9 +318,11 @@ const exportPDF = async () => {
       y += rowH
     }
 
-    pdf.save(`report_${year}-${two(month+1)}.pdf`)
+  pdf.save(`report_${year}-${two(selectedMonth.value+1)}.pdf`)
+  pushToast('Xuất PDF thành công', 'success')
   } catch (e) {
     console.error('Export PDF failed', e)
+  pushToast('Xuất PDF thất bại', 'error')
   }
 }
 
@@ -312,7 +332,7 @@ onMounted(async () => {
   renderOrUpdateLine(); renderOrUpdateBar()
 })
 
-watch(monthTx, () => { renderOrUpdateLine(); renderOrUpdateBar() })
+watch([monthTx, selectedMonth], () => { renderOrUpdateLine(); renderOrUpdateBar() })
 </script>
 
 <style scoped>

@@ -134,6 +134,8 @@
 <script setup>
 import { ref, nextTick, onMounted, watch, computed } from 'vue';
 import { useRoute } from 'vue-router';
+import { getCategories } from '../composables/useCategoryAPI';
+import { getTransactions } from '../composables/useTransactionAPI';
 
 // Detect current route to hide widget on ChatBot page
 const route = useRoute();
@@ -143,11 +145,11 @@ const isOnChatBotPage = computed(() => route.path === '/chatbot');
 const props = defineProps({
   apiUrl: {
     type: String,
-    default: 'http://localhost:1234/v1/chat/completions'
+    default: 'http://192.168.65.1:1234/v1/chat/completions'
   },
   modelName: {
     type: String,
-    default: 'vistral-7b-chat'
+    default: 'google/gemma-3-12b'
   }
 });
 
@@ -160,6 +162,13 @@ const isConnected = ref(false);
 const hasNewMessage = ref(false);
 const unreadCount = ref(0);
 const miniChatContainer = ref(null);
+// Financial data
+const categories = ref([]);
+const transactions = ref([]);
+const dataLoaded = ref(false);
+const loadingData = ref(false);
+const lastLoadTs = ref(0);
+const contextSummary = ref('');
 
 // Methods
 const toggleWidget = () => {
@@ -178,6 +187,14 @@ const sendQuickMessage = (message) => {
 const sendMiniMessage = async () => {
   const message = miniCurrentMessage.value.trim();
   if (!message) return;
+
+  // Ensure data loaded (lazy) before first send
+  if(!dataLoaded.value && !loadingData.value){
+    await loadFinancialData();
+  }
+  if(Date.now() - lastLoadTs.value > 5*60*1000){ // refresh after 5 minutes
+    loadFinancialData(); // fire & forget
+  }
 
   // Add user message
   miniMessages.value.push({
@@ -234,10 +251,8 @@ const callMiniLMStudioAPI = async (message) => {
     body: JSON.stringify({
       model: props.modelName,
       messages: [
-        {
-          role: 'system',
-          content: 'Bạn là Vistral-7B, một trợ lý AI tài chính. Hãy trả lời ngắn gọn, súc tích trong 1-2 câu cho chat widget. Tập trung vào lời khuyên thực tế.'
-        },
+        { role: 'system', content: 'Bạn là trợ lý AI tài chính. Trả lời ngắn gọn (1-2 câu), thực tế, dựa trên dữ liệu cung cấp. Nếu thiếu dữ liệu hãy đề nghị mở trang phân tích chi tiết.' },
+        { role: 'system', content: contextSummary.value },
         ...miniMessages.value.slice(-5), // Send last 5 messages for context
         {
           role: 'user',
@@ -273,10 +288,39 @@ const testMiniConnection = async () => {
   }
 };
 
-// Auto-test connection on mount
+// Build summaries
+function buildCategorySummary(list){
+  if(!list.length) return 'Không có danh mục.';
+  return list.slice(0,10).map((c,i)=>`#${i+1} ${c.name} (${c.type}) limit:${c.limit_amount||'--'}`).join('\n');
+}
+function buildTransactionSummary(list){
+  if(!list.length) return 'Không có giao dịch.';
+  return list.slice(-10).map(t=>`${t.name||'GD'}:${t.amount} ${t.category_id?.name||''} @${(t.date||'').toString().split('T')[0]}`).join('\n');
+}
+function rebuildContext(){
+  contextSummary.value = `DỮ LIỆU HIỆN TẠI (rút gọn)\nDanh mục:\n${buildCategorySummary(categories.value)}\nGiao dịch gần đây:\n${buildTransactionSummary(transactions.value)}`;
+}
+
+async function loadFinancialData(){
+  try{
+    loadingData.value = true;
+    const [catRs, txRs] = await Promise.all([getCategories().catch(()=>null), getTransactions().catch(()=>null)]);
+    if(catRs?.data?.data) categories.value = catRs.data.data;
+    if(txRs?.data) transactions.value = txRs.data;
+    dataLoaded.value = true;
+    lastLoadTs.value = Date.now();
+    rebuildContext();
+  }catch(e){
+    console.error('Load financial data failed', e);
+  }finally{ loadingData.value=false; }
+}
+
+// Auto-test connection & lazy data
 onMounted(() => {
   testMiniConnection();
 });
+
+watch(isOpen, (open)=> { if(open && !dataLoaded.value) loadFinancialData(); });
 
 // Watch for connection status
 watch(() => props.apiUrl, () => {

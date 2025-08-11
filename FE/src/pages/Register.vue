@@ -6,26 +6,6 @@
         </div>
         <div class="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/5 to-pink-500/10"></div>
         
-        <!-- Header -->
-        <header class="relative z-10 w-full bg-gradient-to-r from-blue-900/95 via-blue-800/95 to-purple-900/95 backdrop-blur-md p-6 shadow-2xl border-b border-white/10">
-            <div class="flex justify-center items-center max-w-6xl mx-auto">
-                <!-- Logo & Brand -->
-                <router-link to="/" class="flex items-center space-x-4">
-                    <div class="flex items-center space-x-3">
-                        <!-- Logo -->
-                        <div class="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-xl p-2 shadow-lg">
-                            <img src="/imgs/main-logo.jpg" alt="Logo" class="w-full h-full object-cover rounded-lg">
-                        </div>
-                        <!-- Brand Name -->
-                        <div>
-                            <h1 class="text-2xl font-bold text-white tracking-tight">MoneyManager</h1>
-                            <p class="text-blue-200 text-sm font-medium">Quản lý tài chính thông minh</p>
-                        </div>
-                    </div>
-                </router-link>
-            </div>
-        </header>
-
         <!-- Toast Container với transition -->
         <transition class="fixed top-10 right-10" name="toast" appear>
             <div v-if="toast" class="w-full max-w-xs">                            <!-- Success Toast -->
@@ -140,6 +120,38 @@
                             </div>
                             <p v-show="inputPhoneMessage" :class="{'animation-custom': inputPhoneMessage}" class="text-sm text-red-600 dark:text-red-400">
                                 <span class="font-medium">{{ inputPhoneMessage }}</span>
+                            </p>
+                        </div>
+
+                        <!-- Name Input -->
+                        <div class="space-y-2">
+                            <label for="name_input" class="block text-sm font-semibold text-slate-800 dark:text-slate-200">
+                                Họ và tên
+                            </label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                                    <div class="w-8 h-8 bg-gradient-to-br from-teal-500 to-emerald-500 rounded-lg flex items-center justify-center">
+                                        <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5Zm0 2c-3.3 0-10 1.7-10 5v1c0 .6.4 1 1 1h18c.6 0 1-.4 1-1v-1c0-3.3-6.7-5-10-5Z"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <input 
+                                    type="text" 
+                                    id="name_input" 
+                                    :class="{
+                                        'border-red-300 focus:ring-red-500 focus:border-red-500': inputNameMessage,
+                                        'border-slate-200 dark:border-slate-600 focus:ring-blue-500 focus:border-blue-500': !inputNameMessage
+                                    }"
+                                    class="w-full pl-16 pr-4 py-4 bg-slate-50 dark:bg-slate-700 border rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 transition-all duration-200"
+                                    placeholder="Nhập họ và tên..."
+                                    @focus="inputNameMessage = ''"
+                                    @blur="checkNameData()"
+                                    @input="inputName = $event.target.value"
+                                />
+                            </div>
+                            <p v-show="inputNameMessage" :class="{'animation-custom': inputNameMessage}" class="text-sm text-red-600 dark:text-red-400">
+                                <span class="font-medium">{{ inputNameMessage }}</span>
                             </p>
                         </div>
 
@@ -268,10 +280,10 @@
                         <div class="pt-4">
                             <button 
                                 @click="registerform()"
-                                :disabled="!inputPhone || !inputEmail || !inputPassword || !inputConfirmPassword"
+                                :disabled="!inputPhone || !inputName || !inputEmail || !inputPassword || !inputConfirmPassword"
                                 :class="{
-                                    'bg-slate-400 cursor-not-allowed': !inputPhone || !inputEmail || !inputPassword || !inputConfirmPassword,
-                                    'bg-gradient-to-r from-green-500 via-green-600 to-emerald-600 hover:from-green-600 hover:via-green-700 hover:to-emerald-700 transform hover:scale-[1.02] cursor-pointer': inputPhone && inputEmail && inputPassword && inputConfirmPassword
+                                    'bg-slate-400 cursor-not-allowed': !inputPhone || !inputName || !inputEmail || !inputPassword || !inputConfirmPassword,
+                                    'bg-gradient-to-r from-green-500 via-green-600 to-emerald-600 hover:from-green-600 hover:via-green-700 hover:to-emerald-700 transform hover:scale-[1.02] cursor-pointer': inputPhone && inputName && inputEmail && inputPassword && inputConfirmPassword
                                 }"
                                 class="w-full py-4 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center space-x-3">
                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -313,10 +325,12 @@ import { initFlowbite } from 'flowbite';
 
 const inputPhone                                =       ref('');
 const inputEmail                                =       ref('');
+const inputName                                 =       ref('');
 const inputPassword                             =       ref('');
 const inputConfirmPassword                      =       ref('');
 const inputPhoneMessage                         =       ref('');
 const inputEmailMessage                         =       ref('');
+const inputNameMessage                          =       ref('');
 const inputPasswordMessage                      =       ref('');
 const inputConfirmPasswordMessage               =       ref('');
 
@@ -357,6 +371,13 @@ const checkFormData                             =       () => {
     } else {
         inputPasswordMessage.value              =       '';
     }
+    if(!inputName.value) {
+        inputNameMessage.value                  =       'Họ và tên không được để trống';
+    } else if(inputName.value.length < 2) {
+        inputNameMessage.value                  =       'Họ và tên quá ngắn';
+    } else {
+        inputNameMessage.value                  =       '';
+    }
     if(!inputEmail.value) {
         inputEmailMessage.value                 =       'Email không được để trống';
     } else {
@@ -371,6 +392,7 @@ const checkFormData                             =       () => {
     }
 
     return !inputPhoneMessage.value && 
+           !inputNameMessage.value &&
            !inputEmailMessage.value && 
            !inputPasswordMessage.value && 
            !inputConfirmPasswordMessage.value;
@@ -408,6 +430,17 @@ const checkEmailData                            =       () => {
         inputEmailMessage.value                 =       '';
     }
 }
+const checkNameData = () => {
+    if(!inputName.value) {
+        inputNameMessage.value = 'Họ và tên không được để trống';
+    } else if(inputName.value.length < 2) {
+        inputNameMessage.value = 'Họ và tên quá ngắn';
+    } else if(inputName.value.length > 50) {
+        inputNameMessage.value = 'Họ và tên quá dài';
+    } else {
+        inputNameMessage.value = '';
+    }
+}
 const checkConfirmPasswordData                  =       () => {
     if(!inputConfirmPassword.value) {
         inputConfirmPasswordMessage.value       =       'Phần này không được để trống';
@@ -426,6 +459,7 @@ const registerform                              =       async function() {
 
     const data                                  =       {
         phone:                                          inputPhone.value,
+    name:                                           inputName.value.trim(),
         email:                                          inputEmail.value,
         password:                                       inputPassword.value,
     };

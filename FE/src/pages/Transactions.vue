@@ -167,8 +167,13 @@
               </tr>
             </thead>            
             <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
-              <tr v-for="transaction in transactionsData" class="bg-white/50 dark:bg-transparent hover:bg-slate-50/70 dark:hover:bg-slate-700/50 transition-all duration-200">
-                <td class="px-6 py-4 text-slate-900 dark:text-slate-200 font-medium">{{ formatDate(transaction.date) }}</td>
+              <tr v-for="transaction in filterTransactionsData || transactionsData" class="bg-white/50 dark:bg-transparent hover:bg-slate-50/70 dark:hover:bg-slate-700/50 transition-all duration-200">
+                <td class="px-6 py-4 text-slate-900 dark:text-slate-200">
+                  <div class="flex flex-col leading-tight">
+                    <span class="font-medium">{{ formatDate(transaction.date) }}</span>
+                    <span class="text-xs text-slate-500 dark:text-slate-400 mt-1">{{ formatTime(transaction.date) }}</span>
+                  </div>
+                </td>
                 <th scope="row" class="px-6 py-4 font-medium text-slate-900 dark:text-white">{{ transaction.note || 'Không có mô tả' }}</th>
                 <td class="px-6 py-4">
                   <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-green-800 dark:bg-blue-900/50 dark:text-blue-300">
@@ -346,8 +351,10 @@
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">
               Danh mục <span class="text-red-500">*</span>
             </label>
-            <select class="w-full px-4 py-3 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-              <option v-for="category in categoriesData" :key="category._id" :value="category._id" :selected="category._id === selectedTransaction?.category_id?._id">
+            <select 
+              v-model="editCategoryId"
+              class="w-full px-4 py-3 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              <option v-for="category in categoriesData" :key="category._id" :value="category._id">
                 {{ category.name }}
               </option>
             </select>
@@ -359,7 +366,7 @@
               Ngày giao dịch <span class="text-red-500">*</span>
             </label>
             <input 
-              :value="selectedTransaction?.date ? new Date(selectedTransaction.date).toISOString().split('T')[0] : ''"
+              v-model="editDate"
               type="date" 
               class="w-full px-4 py-3 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
           </div>
@@ -397,6 +404,7 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import { useAuth } from '../composables/useAuth'
+import { useToast } from '../composables/useToast'
 import { 
   getTransactions, 
   deleteTransaction, 
@@ -406,6 +414,8 @@ import { getCategories } from '../composables/useCategoryAPI'
 const { initAuth } = useAuth()
 const transactionsData = ref([])
 const categoriesData = ref([])
+const filterTransactionsData = ref([])
+
 
 const dateFilter = ref('all')
 const typeFilter = ref('all')
@@ -416,6 +426,9 @@ const searchQuery = ref('')
 const showDeleteModal = ref(false)
 const showEditModal = ref(false)
 const selectedTransaction = ref(null)
+// Edit form helpers for fields that need transformation
+const editDate = ref('')
+const editCategoryId = ref('')
 
 const totalIncome = ref(0)
 const totalExpense = ref(0)
@@ -456,6 +469,8 @@ const loadCategories = async () => {
   }
 }
 
+const { push: pushToast } = useToast()
+
 const destroyTransaction = async (transactionId) => {
   try {
     const response = await deleteTransaction(transactionId)
@@ -463,31 +478,90 @@ const destroyTransaction = async (transactionId) => {
       selectedTransaction.value = null
       await loadTransactions();
       closeDeleteModal()
+      pushToast('Xóa giao dịch thành công', 'success')
     } else {
       console.error('Failed to delete transaction:', response.message)
+      pushToast('Xóa giao dịch thất bại', 'error')
     }
   } catch (err) {
     console.error('Error deleting transaction:', err)
+    pushToast('Xóa giao dịch thất bại', 'error')
   }
 }
 
 const editTransaction = async (transaction) => {
+  if (!transaction || !editDate.value || !editCategoryId.value) {
+    pushToast('Vui lòng điền đầy đủ thông tin bắt buộc', 'error')
+    return
+  }
   try {
-    const response = await updateTransaction(transaction._id, transaction)
+    const payload = {
+      amount: Number(transaction.amount),
+      note: transaction.note || '',
+      date: new Date(editDate.value),
+      category_id: editCategoryId.value,
+      user_id: transaction.user_id?._id || transaction.user_id // ensure only ID sent
+    }
+    const response = await updateTransaction(transaction._id, payload)
     if (response.status === 'success') {
       await loadTransactions();
       closeEditModal()
+      pushToast('Cập nhật giao dịch thành công', 'success')
     } else {
       console.error('Failed to update transaction:', response.message)
+      pushToast('Cập nhật giao dịch thất bại', 'error')
     }
   } catch (err) {
     console.error('Error updating transaction:', err)
+    pushToast('Cập nhật giao dịch thất bại', 'error')
   }
 }
 
+const filterTransactions = () => {
+  filterTransactionsData.value = transactionsData.value.filter(t => {
+    const matchesDate = dateFilter.value === 'all' || solveDate(t.date, dateFilter.value)
+    const matchesType = typeFilter.value === 'all' || t.category_id.type === typeFilter.value
+    const matchesCategory = categoryFilter.value === 'all' || t.category_id._id === categoryFilter.value
+    const matchesSearch = t.note.toLowerCase().includes(searchQuery.value.toLowerCase())
+    console.log(matchesDate, matchesType, matchesCategory, matchesSearch);
+    return matchesDate && matchesType && matchesCategory && matchesSearch
+  })
+}
+
+const solveDate = (date, filter) => {
+  if (filter === 'today') {
+    return new Date(date).toISOString().split('T')[0] === new Date().toISOString().split('T')[0];
+  } else if (filter === 'week') {
+    const startOfWeek = new Date();
+    startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+    return new Date(date).toISOString().split('T')[0] >= startOfWeek.toISOString().split('T')[0];
+  } else if (filter === 'month') {
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    return new Date(date).toISOString().split('T')[0] >= startOfMonth.toISOString().split('T')[0];
+  } else if (filter === 'year') {
+    const startOfYear = new Date();
+    startOfYear.setMonth(0);
+    startOfYear.setDate(1);
+    return new Date(date).toISOString().split('T')[0] >= startOfYear.toISOString().split('T')[0];
+  }
+  return true;
+}
+
 watch(transactionsData, (newData) => {
-  totalIncome.value = newData.filter(t => t.category_id.type === 'income').reduce((sum, t) => sum + t.amount, 0)
   totalExpense.value = newData.filter(t => t.category_id.type === 'expense').reduce((sum, t) => sum + t.amount, 0)
+  totalIncome.value = newData.filter(t => t.category_id.type === 'income').reduce((sum, t) => sum + t.amount, 0)
+})
+
+watch([dateFilter, typeFilter, categoryFilter, searchQuery], () => {
+  filterTransactions()
+})
+watch(transactionsData, (newData) => {
+  if(newData.length > 0) {
+    filterTransactions()
+  } else {
+    filterTransactionsData.value = []
+  }
 })
 
 // Format currency for display
@@ -509,6 +583,13 @@ const formatDate = (dateString) => {
   })
 }
 
+// Format time (HH:mm)
+const formatTime = (dateString) => {
+  if(!dateString) return ''
+  const d = new Date(dateString)
+  return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', hour12: false })
+}
+
 // Modal functions
 const openDeleteModal = (transaction) => {
   selectedTransaction.value = transaction
@@ -517,6 +598,9 @@ const openDeleteModal = (transaction) => {
 
 const openEditModal = (transaction) => {
   selectedTransaction.value = { ...transaction }
+  // Prepare editable fields
+  editDate.value = transaction.date ? new Date(transaction.date).toISOString().split('T')[0] : ''
+  editCategoryId.value = transaction.category_id?._id || transaction.category_id
   showEditModal.value = true
 }
 
@@ -528,6 +612,8 @@ const closeDeleteModal = () => {
 const closeEditModal = () => {
   showEditModal.value = false
   selectedTransaction.value = null
+  editDate.value = ''
+  editCategoryId.value = ''
 }
 </script>
 

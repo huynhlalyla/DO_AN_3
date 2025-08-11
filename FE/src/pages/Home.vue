@@ -156,9 +156,7 @@
                     <th scope="col" class="px-6 py-4 font-semibold">Loại</th>
                     <th scope="col" class="px-6 py-4 font-semibold">Danh mục</th>
                     <th scope="col" class="px-6 py-4 font-semibold">Chi phí</th>
-                    <th scope="col" class="px-6 py-4 font-semibold">
-                      <span class="sr-only">Sửa</span>
-                    </th>
+                    <th scope="col" class="px-6 py-4 font-semibold text-center">Thao tác</th>
                   </tr>
                 </thead>                <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
                   <!-- Empty state when no transactions -->
@@ -227,16 +225,95 @@
                         {{ transaction.category_id?.type === 'expense' ? '-' : '+' }}{{ formatCurrency(transaction.amount) }}
                       </span>
                     </td>
-                    <td class="px-6 py-4 text-right">
-                      <button class="p-2 rounded-lg text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                        </svg>
-                      </button>
+                    <td class="px-6 py-4 text-center">
+                      <div class="flex items-center justify-center gap-2">
+                        <button @click="openEditModal(transaction)" class="p-2 rounded-lg text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-all duration-200" title="Chỉnh sửa">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                          </svg>
+                        </button>
+                        <button @click="openDeleteModal(transaction)" class="p-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-all duration-200" title="Xóa">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                          </svg>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 </tbody>
               </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Delete Confirmation Modal -->
+      <div v-if="showDeleteModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full border border-white/30 dark:border-slate-700/50 overflow-hidden">
+          <div class="p-6">
+            <div class="flex items-center gap-4 mb-6">
+              <div class="w-12 h-12 bg-red-100 dark:bg-red-900/50 rounded-full flex items-center justify-center">
+                <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-lg font-bold text-slate-800 dark:text-white">Xác nhận xóa giao dịch</h3>
+                <p class="text-sm text-slate-600 dark:text-slate-400">Hành động này không thể hoàn tác</p>
+              </div>
+            </div>
+            <div class="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-4 mb-6">
+              <div class="space-y-2 text-sm">
+                <div class="flex justify-between"><span class="text-slate-600 dark:text-slate-400">Mô tả:</span><span class="font-medium text-slate-800 dark:text-white truncate max-w-[200px]">{{ selectedTransaction?.note || 'Không có' }}</span></div>
+                <div class="flex justify-between"><span class="text-slate-600 dark:text-slate-400">Số tiền:</span>
+                  <span :class="{'text-green-600 dark:text-green-400': selectedTransaction?.category_id?.type==='income','text-red-600 dark:text-red-400': selectedTransaction?.category_id?.type==='expense'}" class="font-bold">{{ selectedTransaction ? (selectedTransaction.category_id.type==='income'?'+':'-') + formatCurrency(selectedTransaction.amount) : '' }}</span>
+                </div>
+                <div class="flex justify-between"><span class="text-slate-600 dark:text-slate-400">Danh mục:</span><span class="font-medium text-slate-800 dark:text-white">{{ selectedTransaction?.category_id?.name }}</span></div>
+                <div class="flex justify-between"><span class="text-slate-600 dark:text-slate-400">Ngày:</span><span class="font-medium text-slate-800 dark:text-white">{{ selectedTransaction ? formatDate(selectedTransaction.date) : '' }}</span></div>
+              </div>
+            </div>
+            <div class="flex gap-3">
+              <button @click="closeDeleteModal" class="flex-1 px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-medium hover:bg-slate-300 dark:hover:bg-slate-600 transition-all duration-200">Hủy</button>
+              <button @click="destroyTransaction(selectedTransaction._id)" class="flex-1 px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl font-medium hover:from-red-600 hover:to-red-700 transition-all duration-200">Xóa</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Edit Transaction Modal -->
+      <div v-if="showEditModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-lg w-full border border-white/30 dark:border-slate-700/50 overflow-hidden max-h-[90vh] overflow-y-auto">
+          <div class="bg-gradient-to-r from-blue-500 to-purple-600 p-6 text-white flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+              </div>
+              <div>
+                <h3 class="text-xl font-bold">Chỉnh sửa giao dịch</h3>
+                <p class="text-blue-100 text-sm">Cập nhật thông tin giao dịch</p>
+              </div>
+            </div>
+            <button @click="closeEditModal" class="text-white/80 hover:text-white transition-colors">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+          </div>
+          <div class="p-6 space-y-6">
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Số tiền <span class="text-red-500">*</span></label>
+              <div class="relative">
+                <input v-model="selectedTransaction.amount" type="number" class="w-full px-4 py-3 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg font-semibold" />
+                <div class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 font-medium">₫</div>
+              </div>
+            </div>
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Ngày giao dịch <span class="text-red-500">*</span></label>
+              <input v-model="editDate" type="date" class="w-full px-4 py-3 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+            </div>
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Mô tả</label>
+              <textarea v-model="selectedTransaction.note" rows="3" class="w-full px-4 py-3 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none" />
+            </div>
+            <div class="flex gap-3 pt-2">
+              <button @click="closeEditModal" class="flex-1 px-4 py-3 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-medium hover:bg-slate-300 dark:hover:bg-slate-600 transition-all duration-200">Hủy</button>
+              <button @click="editTransaction(selectedTransaction)" class="flex-1 px-4 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl font-medium hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center gap-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>Cập nhật</button>
             </div>
           </div>
         </div>
@@ -330,7 +407,6 @@
       </div>
     </div>
 
-    <DialOption />
   </div>
 </template>
 
@@ -346,14 +422,22 @@ import { initFlowbite }         from    "flowbite";
 import DialOption               from    '../components/DialOption.vue';
 import { useAuth }              from    '../composables/useAuth';
 import { getCategories }        from    '../composables/useCategoryAPI';
-import { getTransactions }      from    '../composables/useTransactionAPI';
+import { getTransactions, deleteTransaction, updateTransaction }      from    '../composables/useTransactionAPI';
 import { icons }                from    '../composables/useIcons';
+import { useToast }             from    '../composables/useToast';
 
 const { initAuth }              =       useAuth();
 
 const transactionsData          =       ref([]);
 const categories                =       ref([]);
 const timeFilter                =       ref('today'); // 'today', 'week', 'month'
+// Modal & selection state
+const showDeleteModal           =       ref(false);
+const showEditModal             =       ref(false);
+const selectedTransaction       =       ref(null);
+const { push: pushToast }       =       useToast();
+// Edit helpers
+const editDate                  =       ref('');
 
 // Helper functions for date filtering
 const isToday = (date) => {
@@ -493,92 +577,41 @@ const chartData = computed(() => {
   return { countExpense, countIncome };
 });
 
-// Chart rendering function
+// Chart instance holder
+const chartInstance = ref(null);
 const renderChart = () => {
   const chartElement = document.getElementById("pie-chart");
   if (!chartElement) return;
-
-  // Clear previous chart content
-  chartElement.innerHTML = '';
-  
+  if(chartInstance.value){
+    try { chartInstance.value.destroy(); } catch(e) {}
+    chartInstance.value = null;
+  }
+  chartElement.innerHTML='';
   const { countExpense, countIncome } = chartData.value;
-  
   if (countExpense === 0 && countIncome === 0) {
-    // Show empty state for chart
     chartElement.innerHTML = `
-      <div class="flex flex-col items-center justify-center h-full py-8">
-        <div class="w-12 h-12 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center mb-4">
-          <svg class="w-6 h-6 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-          </svg>
+      <div class=\"flex flex-col items-center justify-center h-full py-8">
+        <div class=\"w-12 h-12 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center mb-4">
+          <svg class=\"w-6 h-6 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
         </div>
         <p class="text-sm text-slate-500 dark:text-slate-400 text-center">Chưa có dữ liệu<br>để hiển thị biểu đồ</p>
-      </div>
-    `;
+      </div>`;
     return;
   }
-
-  // Render chart with data
-  const getChartOptions = () => {
-    return {
-      series: [countExpense, countIncome],
-      colors: ["#EF4444", "#10B981"], // Red for expense, Green for income - matching our theme
-      chart: {
-        height: 280,
-        width: "100%",
-        type: "pie",
-      },
-      stroke: {
-        colors: ["white"],
-        lineCap: "",
-      },
-      plotOptions: {
-        pie: {
-          labels: {
-            show: true,
-          },
-          size: "100%",
-          dataLabels: {
-            offset: -25
-          }
-        },
-      },
-      labels: ["Chi tiêu", "Thu nhập"],
-      dataLabels: {
-        enabled: true,
-        style: {
-          fontFamily: "Inter, sans-serif",
-          fontSize: "14px",
-          fontWeight: "600",
-          colors: ["#ffffff"]
-        },
-      },
-      legend: {
-        position: "bottom",
-        fontFamily: "Inter, sans-serif",
-        fontSize: "14px",
-        fontWeight: "500",
-        labels: {
-          colors: "#64748B"
-        }
-      },
-      responsive: [{
-        breakpoint: 480,
-        options: {
-          chart: {
-            height: 200
-          },
-          legend: {
-            position: "bottom"
-          }
-        }
-      }]
-    };
-  };
-
+  const getChartOptions = () => ({
+    series: [countExpense, countIncome],
+    colors: ["#EF4444", "#10B981"],
+    chart: { height: 280, width: "100%", type: "pie" },
+    stroke: { colors: ["white"], lineCap: "" },
+    plotOptions: { pie: { labels: { show: true }, size: "100%", dataLabels: { offset: -25 } } },
+    labels: ["Chi tiêu", "Thu nhập"],
+    dataLabels: { enabled: true, style: { fontFamily: "Inter, sans-serif", fontSize: "14px", fontWeight: "600", colors: ["#ffffff"] } },
+    legend: { position: "bottom", fontFamily: "Inter, sans-serif", fontSize: "14px", fontWeight: "500", labels: { colors: "#64748B" } },
+    responsive: [{ breakpoint: 480, options: { chart: { height: 200 }, legend: { position: "bottom" } } }]
+  });
   if (typeof ApexCharts !== 'undefined') {
-    const chart = new ApexCharts(chartElement, getChartOptions());
-    chart.render();
+    chartInstance.value = new ApexCharts(chartElement, getChartOptions());
+    chartInstance.value.render();
   }
 };
 const loadCategories = async () => {
@@ -606,6 +639,69 @@ const loadTransactions = async () => {
     console.error('Error loading transactions:', error);
   }
 };
+
+// Modal handlers
+function openDeleteModal(tx){
+  selectedTransaction.value = JSON.parse(JSON.stringify(tx));
+  showDeleteModal.value = true;
+}
+function closeDeleteModal(){
+  showDeleteModal.value = false;
+  selectedTransaction.value = null;
+}
+function openEditModal(tx){
+  selectedTransaction.value = JSON.parse(JSON.stringify(tx));
+  editDate.value = tx.date ? new Date(tx.date).toISOString().split('T')[0] : '';
+  showEditModal.value = true;
+}
+function closeEditModal(){
+  showEditModal.value = false;
+  selectedTransaction.value = null;
+  editDate.value = '';
+}
+
+// CRUD actions
+async function destroyTransaction(id){
+  try {
+    const rs = await deleteTransaction(id);
+    if(rs.status==='success'){
+      pushToast('Xóa giao dịch thành công','success');
+      closeDeleteModal();
+      await loadTransactions();
+    } else {
+      pushToast('Xóa giao dịch thất bại','error');
+    }
+  } catch (e) {
+    pushToast('Xóa giao dịch thất bại','error');
+  }
+}
+async function editTransaction(tx){
+  if(!tx || !tx._id){
+    pushToast('Dữ liệu giao dịch không hợp lệ','error');
+    return;
+  }
+  if(!tx.amount || tx.amount <= 0){
+    pushToast('Số tiền phải lớn hơn 0','warn');
+    return;
+  }
+  if(!editDate.value){
+    pushToast('Vui lòng chọn ngày giao dịch','warn');
+    return;
+  }
+  try{
+    const payload = { amount: Number(tx.amount), note: tx.note, date: new Date(editDate.value) };
+    const rs = await updateTransaction(tx._id, payload);
+    if(rs.status==='success'){
+      pushToast('Cập nhật giao dịch thành công','success');
+      closeEditModal();
+      await loadTransactions();
+    } else {
+      pushToast('Cập nhật giao dịch thất bại','error');
+    }
+  }catch(err){
+    pushToast('Cập nhật giao dịch thất bại','error');
+  }
+}
 
 // Format currency helper
 const formatCurrency = (value) => {

@@ -5,7 +5,7 @@
             <div class="lg:col-span-2 flex flex-col bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 relative overflow-hidden">
                 <!-- Background Pattern -->
                 <div class="absolute inset-0 opacity-5">
-                    <div class="absolute inset-0" style="background-image: url('/imgs/bg-form.jpg'); background-size: cover; background-position: center; background-repeat: no-repeat;"></div>
+                    <div class="absolute inset-0" style="background-image: url('/imgs/bg-form3.jpg'); background-size: cover; background-position: center; background-repeat: no-repeat;"></div>
                 </div>                
                 <div class="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-blue-500/5 to-pink-500/10"></div>
                 
@@ -21,7 +21,7 @@
                                 </div>
                                 <!-- Brand Name -->
                                 <div>
-                                    <h1 class="text-2xl font-bold text-white tracking-tight">MoneyManager</h1>
+                                    <h1 class="text-2xl font-bold text-white tracking-tight">MONA</h1>
                                     <p class="text-purple-200 text-sm font-medium">Quản lý tài chính thông minh</p>
                                 </div>
                             </div>
@@ -37,12 +37,29 @@
                                 <span class="font-medium">Quản lý danh mục</span>
                             </router-link>
                             
-                            <!-- Menu Button -->
-                            <button class="p-3 bg-white/10 hover:bg-white/20 rounded-lg backdrop-blur-sm transition-all duration-300 border border-white/20 hover:border-white/30">
-                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-                                </svg>
-                            </button>
+                            <!-- Menu Button with dropdown -->
+                            <div class="relative">
+                                <button ref="menuButtonRef" @click.stop="toggleMenu" class="p-3 bg-white/10 hover:bg-white/20 rounded-lg backdrop-blur-sm transition-all duration-300 border border-white/20 hover:border-white/30 focus:outline-none focus:ring-2 focus:ring-white/40">
+                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                                    </svg>
+                                </button>
+                                <teleport to="body">
+                                    <transition name="fade" mode="out-in">
+                                        <div v-if="menuOpen" ref="menuRef" :style="menuStyles" class="fixed w-56 origin-top-right bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl ring-1 ring-black/5 p-2 z-[9999] backdrop-blur-sm">
+                                            <div class="py-1 text-sm">
+                                                <router-link @click="closeMenu" :to="{ name: 'HomePage' }" class="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200">Trang chủ</router-link>
+                                                <router-link @click="closeMenu" :to="{ name: 'TransactionsPage' }" class="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200">Giao dịch</router-link>
+                                                <router-link @click="closeMenu" :to="{ name: 'CategoriesPage' }" class="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200">Danh mục</router-link>
+                                                <router-link @click="closeMenu" :to="{ name: 'TransactionsAddPage' }" class="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200">Thêm giao dịch</router-link>
+                                                <router-link @click="closeMenu" :to="{ name: 'CategoriesAddPage' }" class="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200">Thêm danh mục</router-link>
+                                                <router-link @click="closeMenu" :to="{ name: 'ReportsPage' }" class="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200">Báo cáo</router-link>
+                                                <router-link @click="closeMenu" :to="{ name: 'SearchResultsPage' }" class="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200">Tìm kiếm</router-link>
+                                            </div>
+                                        </div>
+                                    </transition>
+                                </teleport>
+                            </div>
                         </div>
                     </div>
                 </header>
@@ -146,7 +163,7 @@
                                                 'ring-2 ring-purple-500 scale-110': selectedIcon === icon.name,
                                                 'hover:scale-105': selectedIcon !== icon.name
                                             },
-                                            'w-12 h-12 inline-flex rounded-lg items-center justify-center transition-all duration-200 border border-slate-200 dark:border-slate-600'
+                                            'w-12 h-12 dark:text-slate-200 inline-flex rounded-lg items-center justify-center transition-all duration-200 border border-slate-200 dark:border-slate-600'
                                         ]">
                                         <span v-html="icon.icon"></span>
                                     </button>
@@ -217,15 +234,38 @@
                                         </div>
                                     </div>
                                     <input 
-                                        v-model="budgetLimit"
-                                        type="number" 
+                                        :value="budgetLimitDisplay"
+                                        @input="onBudgetInput"
+                                        inputmode="numeric"
+                                        autocomplete="off"
                                         id="budget-limit" 
                                         required
-                                        min="1"
-                                        class="w-full pl-16 pr-4 py-4 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 text-lg font-medium"
-                                        placeholder="0">
+                                        class="w-full pl-16 pr-4 py-4 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 text-lg font-medium tracking-wide"
+                                        placeholder="0" />
                                 </div>
-                                <p class="text-xs text-slate-500 dark:text-slate-400">Số tiền tối đa có thể chi cho danh mục này trong một tháng</p>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">Số tiền tối đa có thể áp dụng cho danh mục này trong kỳ hạn.</p>
+                            </div>
+
+                            <!-- Cycle Dates -->
+                            <div class="space-y-2">
+                                <label class="block text-sm font-semibold text-slate-800 dark:text-slate-200">
+                                    Chu kỳ áp dụng <span class="text-red-500">*</span>
+                                </label>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div class="space-y-1">
+                                        <span class="text-xs text-slate-500 dark:text-slate-400">Bắt đầu</span>
+                                        <div class="relative">
+                                            <input type="date" v-model="startDate" @change="onStartDateChange" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm" />
+                                        </div>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <span class="text-xs text-slate-500 dark:text-slate-400">Kết thúc</span>
+                                        <div class="relative">
+                                            <input type="date" v-model="endDate" @change="onEndDateChange" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">Mặc định: 1 tháng kể từ ngày bắt đầu. Hệ thống dùng chu kỳ này để đánh giá ngân sách.</p>
                             </div>
 
                             <!-- Submit Button -->
@@ -354,91 +394,18 @@
             </div>
         </div>
         
-        <!-- Notification Toast -->
-        <div 
-            v-if="notification.show" 
-            class="fixed top-20 right-6 z-50 transition-all duration-500 ease-in-out transform"
-            :class="notification.show ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'">
-            <div 
-                class="min-w-80 max-w-md bg-white dark:bg-slate-800 rounded-xl shadow-2xl border-l-4 overflow-hidden"
-                :class="{
-                    'border-green-500': notification.type === 'success',
-                    'border-red-500': notification.type === 'error'
-                }">
-                <div class="p-4">
-                    <div class="flex items-start space-x-3">
-                        <!-- Icon -->
-                        <div 
-                            class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center"
-                            :class="{
-                                'bg-green-100 dark:bg-green-900/30': notification.type === 'success',
-                                'bg-red-100 dark:bg-red-900/30': notification.type === 'error'
-                            }">
-                            <!-- Success Icon -->
-                            <svg 
-                                v-if="notification.type === 'success'"
-                                class="w-5 h-5 text-green-600 dark:text-green-400" 
-                                fill="currentColor" 
-                                viewBox="0 0 24 24">
-                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                            </svg>
-                            <!-- Error Icon -->
-                            <svg 
-                                v-if="notification.type === 'error'"
-                                class="w-5 h-5 text-red-600 dark:text-red-400" 
-                                fill="currentColor" 
-                                viewBox="0 0 24 24">
-                                <path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/>
-                            </svg>
-                        </div>
-                        
-                        <!-- Content -->
-                        <div class="flex-1 min-w-0">
-                            <h4 
-                                class="font-semibold text-sm mb-1"
-                                :class="{
-                                    'text-green-800 dark:text-green-200': notification.type === 'success',
-                                    'text-red-800 dark:text-red-200': notification.type === 'error'
-                                }">
-                                {{ notification.title }}
-                            </h4>
-                            <p class="text-sm text-slate-600 dark:text-slate-400">
-                                {{ notification.content }}
-                            </p>
-                        </div>
-                        
-                        <!-- Close Button -->
-                        <button 
-                            @click="hideNotification"
-                            class="flex-shrink-0 p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
-                            <svg class="w-4 h-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- Progress Bar -->
-                <div 
-                    class="h-1 transition-all duration-300 ease-linear"
-                    :class="{
-                        'bg-green-500': notification.type === 'success',
-                        'bg-red-500': notification.type === 'error'
-                    }"
-                    :style="{width: `${notification.progress}%`}">
-                </div>
-            </div>
-        </div>
+    <!-- Global toasts handled by <Toasts /> component -->
     </div>
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { useAuth } from '../composables/useAuth'
 import { icons } from '../composables/useIcons'
 import { getCategories, createCategory } from '../composables/useCategoryAPI'
 import { getTransactions } from '../composables/useTransactionAPI'
 import { useRouter } from 'vue-router'
+import { useToast } from '../composables/useToast'
 
 const { initAuth } = useAuth()
 const colors = ref([
@@ -456,15 +423,36 @@ const categoryName = ref('')
 const categoryType = ref('expense')
 const categoryDescription = ref('')
 const budgetLimit = ref(0)
+const budgetLimitDisplay = ref('')
+const startDate = ref(new Date().toISOString().split('T')[0])
+const endDate = ref((() => { const d = new Date(); d.setMonth(d.getMonth()+1); return d.toISOString().split('T')[0] })())
 
-// Notification state
-const notification = ref({
-    show: false,
-    type: 'success', // 'success' or 'error'
-    title: '',
-    content: '',
-    progress: 100
-})
+const { push: pushToast } = useToast()
+
+// Menu nav state (teleport + fixed positioning)
+const menuOpen = ref(false)
+const menuRef = ref(null)
+const menuButtonRef = ref(null)
+const menuStyles = ref({ top: '0px', left: '0px' })
+const computeMenuPosition = () => {
+    if(!menuButtonRef.value) return
+    const rect = menuButtonRef.value.getBoundingClientRect()
+    const width = 224 // w-56
+    menuStyles.value = {
+        top: `${rect.bottom + 8}px`,
+        left: `${Math.min(rect.right - width, window.innerWidth - width - 8)}px`
+    }
+}
+const toggleMenu = () => { menuOpen.value = !menuOpen.value; if(menuOpen.value) computeMenuPosition() }
+const closeMenu = () => { menuOpen.value = false }
+const onClickOutside = (e) => {
+    if(!menuOpen.value) return
+    if(menuRef.value && !menuRef.value.contains(e.target) && !menuButtonRef.value.contains(e.target)) menuOpen.value = false
+}
+const onKey = (e) => { if(e.key === 'Escape') closeMenu() }
+const onResize = () => { if(menuOpen.value) computeMenuPosition() }
+onMounted(() => { document.addEventListener('click', onClickOutside); window.addEventListener('keydown', onKey); window.addEventListener('resize', onResize) })
+onUnmounted(() => { document.removeEventListener('click', onClickOutside); window.removeEventListener('keydown', onKey); window.removeEventListener('resize', onResize) })
 
 // Initialize auth
 onMounted( async () => {
@@ -491,44 +479,14 @@ const formatCurrency = (value) => {
     }).format(value)
 }
 
-// Notification functions
-const showNotification = (type, title, content) => {
-    notification.value = {
-        show: true,
-        type: type,
-        title: title,
-        content: content,
-        progress: 100
-    }
-    
-    // Auto hide after 5 seconds with progress bar
-    let progress = 100
-    const interval = setInterval(() => {
-        progress -= 2
-        notification.value.progress = progress
-        
-        if (progress <= 0) {
-            clearInterval(interval)
-            hideNotification()
-        }
-    }, 100)
-}
-
-const hideNotification = () => {
-    notification.value.show = false
-}
+// (Removed local notification system — using global toast)
 
 // Form submission
 const submitForm = async () => {
-    if (!categoryName.value.trim()) {
-        showNotification('error', 'Lỗi xác thực', 'Vui lòng nhập tên danh mục')
-        return
-    }
-    
-    if (!budgetLimit.value || budgetLimit.value <= 0) {
-        showNotification('error', 'Lỗi xác thực', 'Vui lòng nhập ngân sách giới hạn hợp lệ')
-        return
-    }
+    if (!categoryName.value.trim()) { pushToast('Vui lòng nhập tên danh mục', 'error'); return }
+    if (!budgetLimit.value || budgetLimit.value <= 0) { pushToast('Vui lòng nhập ngân sách hợp lệ', 'error'); return }
+    if (!startDate.value || !endDate.value) { pushToast('Vui lòng chọn đủ ngày bắt đầu và kết thúc', 'error'); return }
+    if (new Date(endDate.value) < new Date(startDate.value)) { pushToast('Ngày kết thúc phải sau ngày bắt đầu', 'error'); return }
     const newCategory = {
         name: categoryName.value.trim(),
         type: categoryType.value,
@@ -536,25 +494,56 @@ const submitForm = async () => {
         color: selectedColor.value,
         description: categoryDescription.value.trim(),
         limit_amount: budgetLimit.value,
+        start_date: startDate.value,
+        end_date: endDate.value,
         user_id: useAuth().user.value._id
     }
 
     const response = await createCategory(newCategory)
     if(response.status === 'success') {
-        showNotification('success', 'Thành công!', `Danh mục "${categoryName.value}" đã được tạo thành công`)
-
-        setTimeout(() => {
-            showNotification('success', 'Quay lại', 'Trở lại trang danh mục sau 5s');
-        }, 300)
-
-        setTimeout(() => {
-            router.push('/categories')
-        }, 5000)
-    }
-    else {
-        showNotification('error', 'Lỗi', 'Không thể tạo danh mục. Vui lòng thử lại sau.')
+        pushToast(`Danh mục "${categoryName.value}" đã được tạo`, 'success')
+        setTimeout(() => router.push('/categories'), 1200)
+    } else {
+        pushToast('Không thể tạo danh mục', 'error')
     }
 
+}
+
+function formatNumber(val){
+    if(val === null || val === undefined || val === '' || isNaN(val)) return ''
+    const num = Number(val)
+    if(!isFinite(num)) return ''
+    return num.toLocaleString('vi-VN')
+}
+function onBudgetInput(e){
+    const raw = (e.target.value || '').replace(/[^0-9]/g,'')
+    if(raw === ''){
+        budgetLimit.value = 0
+        budgetLimitDisplay.value = ''
+    } else {
+        budgetLimit.value = Number(raw)
+        budgetLimitDisplay.value = formatNumber(raw)
+    }
+}
+onMounted(() => { budgetLimitDisplay.value = budgetLimit.value ? formatNumber(budgetLimit.value) : '' })
+
+function onStartDateChange(){
+    if(!startDate.value) return
+    // Auto adjust endDate if endDate before startDate
+    if(new Date(endDate.value) < new Date(startDate.value)){
+        const d = new Date(startDate.value)
+        d.setMonth(d.getMonth()+1)
+        endDate.value = d.toISOString().split('T')[0]
+    }
+}
+function onEndDateChange(){
+    if(!endDate.value || !startDate.value) return
+    if(new Date(endDate.value) < new Date(startDate.value)){
+        pushToast('Kết thúc không thể trước bắt đầu', 'warn')
+        const d = new Date(startDate.value)
+        d.setMonth(d.getMonth()+1)
+        endDate.value = d.toISOString().split('T')[0]
+    }
 }
 </script>
 

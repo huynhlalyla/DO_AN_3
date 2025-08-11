@@ -91,6 +91,21 @@ const icons = {
         name: 'rental',
         icon: '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 7h-3V6a4 4 0 0 0-8 0v1H5a1 1 0 0 0-1 1v11a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V8a1 1 0 0 0-1-1zM10 6a2 2 0 0 1 4 0v1h-4V6zm8 13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V9h2v1a1 1 0 0 0 2 0V9h4v1a1 1 0 0 0 2 0V9h2v10z"/></svg>',
         description: 'Cho thuê, thu nhập từ tài sản'
+    },// ...existing code...
+    other_income: {
+        name: 'other_income',
+        icon: '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>',
+        description: 'Thu nhập khác, không phân loại'
+    },
+    insurance: {
+        name: 'insurance',
+        icon: '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l7 4v6c0 5-3.5 9.4-7 10-3.5-.6-7-5-7-10V6l7-4z"/></svg>',
+        description: 'Bảo hiểm, an toàn tài chính'
+    },
+    pets: {
+        name: 'pets',
+        icon: '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 13c1.7 0 3 1.3 3 3s-1.3 3-3 3-3-1.3-3-3 1.3-3 3-3zm-5.5-1c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm11 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9 5.5c1 0 1.8-.8 1.8-1.8S10 2 9 2s-1.8.8-1.8 1.8S8 5.5 9 5.5zm6 0c1 0 1.8-.8 1.8-1.8S16 2 15 2s-1.8.8-1.8 1.8S14 5.5 15 5.5z"/></svg>',
+        description: 'Thú cưng, chăm sóc & phụ kiện'
     },
     other_income: {
         name: 'other_income',

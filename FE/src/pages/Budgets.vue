@@ -18,10 +18,19 @@
             </div>
             <div>
               <h1 class="text-3xl font-bold text-slate-800 dark:text-white">Quản lý ngân sách</h1>
-              <p class="text-slate-600 dark:text-slate-400">Theo dõi và kiểm soát chi tiêu theo danh mục</p>
+              <p class="text-slate-600 dark:text-slate-400">Theo dõi và kiểm soát chi tiêu theo danh mục ({{ monthLabel }})</p>
             </div>
           </div>
-          <div class="flex gap-3">
+          <div class="flex gap-3 items-center flex-wrap">
+            <!-- Month Selector -->
+            <div class="flex items-center gap-2 bg-slate-100 dark:bg-slate-700/60 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-600">
+              <span class="text-xs font-medium text-slate-600 dark:text-slate-300">Tháng:</span>
+              <select v-model="selectedMonth" class="bg-transparent text-sm font-semibold text-slate-800 dark:text-slate-100 focus:outline-none">
+                <option v-for="m in monthOptions" :key="m.value" :value="m.value" class="text-slate-800 dark:text-slate-900">
+                  {{ m.label }}
+                </option>
+              </select>
+            </div>
             <router-link to="/categories" class="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl font-medium hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 flex items-center gap-2">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
@@ -111,9 +120,9 @@
                 @click="activeTab = 'expense'"  
                :class="[
                 {
-                    'bg-white shadow-sm' : activeTab === 'expense'
+                    'bg-white dark:bg-slate-800 dark:text-slate-200 shadow-sm' : activeTab === 'expense'
                 },
-                'px-4 py-2 dark:bg-slate-600 text-slate-800 dark:text-white rounded-md font-medium'
+                'px-4 py-2 text-slate-800 dark:text-white rounded-md font-medium'
               ]">
                 Chi tiêu
               </button>
@@ -121,9 +130,9 @@
                 @click="activeTab = 'income'"  
                :class="[
                 {
-                    'bg-white shadow-sm' : activeTab === 'income'
+                    'bg-white dark:bg-slate-800 dark:text-slate-200 shadow-sm' : activeTab === 'income'
                 },
-                'px-4 py-2 dark:bg-slate-600 text-slate-800 dark:text-white rounded-md font-medium'
+                'px-4 py-2 text-slate-800 dark:text-white rounded-md font-medium'
               ]">
                 Thu nhập
               </button>
@@ -136,7 +145,12 @@
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
             <!-- Food Budget -->
-            <div v-for="category in categories.filter(tx => tx.type === activeTab)" :key="category._id" class="bg-gradient-to-br from-slate-50 to-slate-50 dark:from-slate-900/20 dark:to-slate-900/20 rounded-xl p-6 border border-slate-200/50 dark:border-slate-700/50 hover:shadow-lg transition-all duration-300">
+            <div v-for="category in categoriesForDisplay" :key="category._id" :class="[
+              'rounded-xl p-6 border hover:shadow-lg transition-all duration-300',
+              isCategoryExpiredSelectedMonth(category)
+                ? 'bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-900/30 dark:to-rose-900/20 border-red-300/60 dark:border-red-600/60'
+                : 'bg-gradient-to-br from-slate-50 to-slate-50 dark:from-slate-900/20 dark:to-slate-900/20 border-slate-200/50 dark:border-slate-700/50'
+            ]">
               <div class="flex items-start justify-between mb-4">
                 <div class="flex items-center gap-3">
                   <div :style="{backgroundColor: category.color}" class="w-12 h-12 rounded-xl flex items-center justify-center text-white">
@@ -148,8 +162,8 @@
                   </div>
                 </div>
                 <div v-if="category.type === 'expense'">
-                  <span class="text-xs bg-green-400 text-green-800 p-1 rounded-full" v-if="solveCategory(category).percentage < 50">An toàn</span>
-                  <span class="text-xs bg-orange-400 text-orange-800 p-1 rounded-full" v-else-if="solveCategory(category).percentage >= 50">Cảnh báo</span>
+                  <span class="text-xs bg-green-400 text-green-800 p-1 rounded-full" v-if="solveCategory(category).percentage < 80">An toàn</span>
+                  <span class="text-xs bg-orange-400 text-orange-800 p-1 rounded-full" v-else-if="solveCategory(category).percentage >= 80 && solveCategory(category).percentage < 100">Cảnh báo</span>
                   <span class="text-xs bg-red-400 text-red-800 p-1 rounded-full" v-else>Vượt ngân sách</span>
                 </div>
                 <div v-else>
@@ -167,6 +181,10 @@
                 <div class="flex justify-between items-center">
                   <span class="text-sm text-slate-600 dark:text-slate-400">{{ category.type === 'income' ? 'Đã thu' : 'Đã chi' }}</span>
                   <span class="font-bold text-red-600 dark:text-red-400">{{ formatCurrency(solveCategory(category).totalAmount) }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-sm text-slate-600 dark:text-slate-400">Chu kỳ</span>
+                  <span class="text-xs font-medium text-slate-500 dark:text-slate-400">{{ formatDate(category.start_date) }} → {{ formatDate(category.end_date) }}</span>
                 </div>
                 <div class="flex justify-between items-center">
                   <span class="text-sm text-slate-600 dark:text-slate-400">{{ solveCategory(category).percentage <= 100 ? 'Còn lại' : 'Vượt mức' }}</span>
@@ -215,7 +233,7 @@
             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
               <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
             </svg>
-            Tổng quan ngân sách tháng này
+            Tổng quan ngân sách {{ monthLabel.toLowerCase() }}
           </h3>
         </div>
 
@@ -284,7 +302,7 @@
           <div class="space-y-4">
             <!-- Income vs Expense Pie Chart -->
             <div class="space-y-4">
-              <h4 class="font-semibold text-slate-800 dark:text-white">Biểu đồ Thu nhập vs Chi tiêu (Tháng hiện tại)</h4>
+              <h4 class="font-semibold text-slate-800 dark:text-white">Biểu đồ Thu nhập vs Chi tiêu ({{ monthLabel }})</h4>
               <div class="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-6">
                 <!-- Chart Container -->
                 <div ref="lineChartEl" class="w-full h-72"></div>
@@ -309,13 +327,60 @@ import ApexCharts from 'apexcharts'
 const categories = ref([])
 const transactions = ref([])
 const showTooltip = ref(null)
+// Month selection (0-based month index)
+const now = new Date()
+const selectedMonth = ref(now.getMonth())
+// Month options for current year up to current month
+const monthOptions = computed(() => {
+  const currentMonth = now.getMonth()
+  const formatter = new Intl.DateTimeFormat('vi-VN', { month: '2-digit' })
+  const result = []
+  for (let m = 0; m <= currentMonth; m++) {
+    const date = new Date(now.getFullYear(), m, 1)
+    result.push({ value: m, label: `Tháng ${formatter.format(date)}/${now.getFullYear()}` })
+  }
+  return result.reverse() // show latest first
+})
+const monthLabel = computed(() => {
+  const m = selectedMonth.value
+  const date = new Date(now.getFullYear(), m, 1)
+  return date.toLocaleDateString('vi-VN', { month: 'long', year: 'numeric' })
+})
 
 // Line chart refs
 const lineChartEl = ref(null)
 let lineChart = null
 
-const incomeCategories = computed(() => categories.value.filter(category => category.type === 'income'))
-const expenseCategories = computed(() => categories.value.filter(category => category.type === 'expense'))
+// Category active in selected month helper (overlap with category cycle if present)
+const isCategoryActiveInSelectedMonth = (category) => {
+  if (!category) return false
+  const year = now.getFullYear()
+  const month = selectedMonth.value
+  const monthStart = new Date(year, month, 1)
+  const monthEnd = new Date(year, month + 1, 0, 23, 59, 59, 999)
+  const start = category.start_date ? new Date(category.start_date) : null
+  const end = category.end_date ? new Date(category.end_date) : null
+  const afterStart = start ? monthEnd >= start : true
+  const beforeEnd = end ? monthStart <= end : true
+  return afterStart && beforeEnd
+}
+
+const incomeCategories = computed(() => categories.value.filter(category => category.type === 'income' && isCategoryActiveInSelectedMonth(category)))
+const expenseCategories = computed(() => categories.value.filter(category => category.type === 'expense' && isCategoryActiveInSelectedMonth(category)))
+
+// Categories displayed in grid (show all of selected tab, but still mark expired)
+const categoriesForDisplay = computed(() => {
+  return categories.value.filter(c => c.type === activeTab.value)
+})
+
+// Transactions filtered by selected month
+const filteredTransactions = computed(() => {
+  return transactions.value.filter(tx => {
+    const d = new Date(tx?.date || tx?.createdAt)
+    if (isNaN(d)) return false
+    return d.getMonth() === selectedMonth.value && d.getFullYear() === now.getFullYear()
+  })
+})
 
 const total = ref(0);
 const used = ref(0);
@@ -343,54 +408,19 @@ const expenseAverage = computed(() => {
 
 // Tính toán dữ liệu cho biểu đồ tròn
 const pieChartData = computed(() => {
-  const currentDate = new Date()
-  const currentMonth = currentDate.getMonth()
-  const currentYear = currentDate.getFullYear()
-  
-  // Lấy giao dịch tháng hiện tại
-  const currentMonthTransactions = transactions.value.filter(tx => {
-    const txDate = new Date(tx?.date || tx?.createdAt)
-    return txDate.getMonth() === currentMonth && 
-           txDate.getFullYear() === currentYear
-  })
-  
-  const totalIncome = currentMonthTransactions
-    .filter(tx => tx.category_id && tx.category_id.type === 'income')
-    .reduce((sum, tx) => sum + tx.amount, 0)
-    
-  const totalExpense = currentMonthTransactions
-    .filter(tx => tx.category_id && tx.category_id.type === 'expense')
-    .reduce((sum, tx) => sum + tx.amount, 0)
-  
+  const monthTx = filteredTransactions.value
+  const totalIncome = monthTx.filter(tx => tx.category_id && tx.category_id.type === 'income').reduce((s, tx) => s + tx.amount, 0)
+  const totalExpense = monthTx.filter(tx => tx.category_id && tx.category_id.type === 'expense').reduce((s, tx) => s + tx.amount, 0)
   const total = totalIncome + totalExpense
-  
   if (total === 0) {
-    return {
-      income: { value: 0, percentage: 0, angle: 0 },
-      expense: { value: 0, percentage: 0, angle: 0 },
-      total: 0
-    }
+    return { income: { value: 0, percentage: 0, angle: 0 }, expense: { value: 0, percentage: 0, angle: 0 }, total: 0 }
   }
-  
   const incomePercentage = (totalIncome / total) * 100
   const expensePercentage = (totalExpense / total) * 100
-  
-  // Tính góc cho SVG (360 độ = 2π radians)
-  const incomeAngle = (totalIncome / total) * 360
-  const expenseAngle = (totalExpense / total) * 360
-  
   return {
-    income: { 
-      value: totalIncome, 
-      percentage: incomePercentage.toFixed(1), 
-      angle: incomeAngle 
-    },
-    expense: { 
-      value: totalExpense, 
-      percentage: expensePercentage.toFixed(1), 
-      angle: expenseAngle 
-    },
-    total: total
+    income: { value: totalIncome, percentage: incomePercentage.toFixed(1), angle: (totalIncome / total) * 360 },
+    expense: { value: totalExpense, percentage: expensePercentage.toFixed(1), angle: (totalExpense / total) * 360 },
+    total
   }
 })
 
@@ -418,8 +448,8 @@ const polarToCartesian = (centerX, centerY, radius, angleInDegrees) => {
 
 const budgetAlerts = computed(() => {
   const alerts = []
-  
-  categories.value.forEach(category => {
+  // only categories active this month
+  categories.value.filter(c => isCategoryActiveInSelectedMonth(c)).forEach(category => {
     const categoryData = solveCategory(category)
     if (category.type === 'expense') {
       if (categoryData.percentage > 100) {
@@ -448,19 +478,13 @@ const budgetAlerts = computed(() => {
 })
 
 const activeCategories = computed(() => {
-  return categories.value.filter(category => {
-    const categoryData = solveCategory(category)
-    return categoryData.totalAmount > 0
-  }).length
+  return categories.value.filter(category => isCategoryActiveInSelectedMonth(category) && solveCategory(category).totalAmount > 0).length
 })
 
 const monthlySavings = computed(() => {
-  const totalIncome = transactions.value
-    .filter(tx => tx.category_id && tx.category_id.type === 'income')
-    .reduce((sum, tx) => sum + tx.amount, 0)
-  const totalExpense = transactions.value
-    .filter(tx => tx.category_id && tx.category_id.type === 'expense')
-    .reduce((sum, tx) => sum + tx.amount, 0)
+  const monthTx = filteredTransactions.value
+  const totalIncome = monthTx.filter(tx => tx.category_id && tx.category_id.type === 'income').reduce((s, tx) => s + tx.amount, 0)
+  const totalExpense = monthTx.filter(tx => tx.category_id && tx.category_id.type === 'expense').reduce((s, tx) => s + tx.amount, 0)
   return Math.max(0, totalIncome - totalExpense)
 })
 
@@ -477,7 +501,12 @@ onMounted( async () => {
 })
 
 watch(activeTab, (newTab) => {
-  manage(newTab);
+  manage(newTab)
+})
+
+watch(selectedMonth, () => {
+  manage(activeTab.value)
+  renderOrUpdateLineChart()
 })
 
 const loadCategories = async () => {
@@ -515,57 +544,58 @@ const formatCurrency = (amount) => {
   }).format(amount);
 }
 
+const formatDate = (value) => {
+  if(!value) return '-'
+  const d = new Date(value)
+  if (isNaN(d)) return '-'
+  return d.toLocaleDateString('vi-VN', { day:'2-digit', month:'2-digit', year:'numeric' })
+}
+
+const isCategoryExpiredSelectedMonth = (category) => {
+  if(!category?.end_date) return false
+  const year = now.getFullYear()
+  const monthStart = new Date(year, selectedMonth.value, 1)
+  // expired if end_date before month start
+  return new Date(category.end_date).getTime() < monthStart.getTime()
+}
+
 const solveCategory = function(category) {
-    const totalAmount = transactions.value
-      .filter(tx => tx.category_id._id === category._id)
-      .reduce((sum, tx) => sum + tx.amount, 0);
-    const percentage = (totalAmount / category.limit_amount) * 100;
-    const remaining = category.limit_amount - totalAmount;
-    return {
-      totalAmount: totalAmount,
-      percentage: percentage.toFixed(2),
-      remaining: category.type === 'expense' ? remaining : Math.abs(remaining)
-    };
+  const monthTx = filteredTransactions.value.filter(tx => tx.category_id && tx.category_id._id === category._id)
+  const totalAmount = monthTx.reduce((sum, tx) => sum + tx.amount, 0)
+  const percentage = (totalAmount / category.limit_amount) * 100
+  const remaining = category.limit_amount - totalAmount
+  return { totalAmount, percentage: (isFinite(percentage) ? percentage : 0).toFixed(2), remaining: category.type === 'expense' ? remaining : Math.abs(remaining) }
 }
 
 const manage = function(type) {
   if (type === 'income') {
-    total.value = incomeCategories.value.reduce((sum, category) => sum + category.limit_amount, 0);
-    used.value = transactions.value
-      .filter(tx => tx.category_id && tx.category_id.type === 'income')
-      .reduce((sum, tx) => sum + tx.amount, 0);
-    remaining.value = Math.abs(total.value - used.value);
-    progress.value = total.value > 0 ? ((used.value / total.value) * 100).toFixed(2) : 0;
+    total.value = incomeCategories.value.reduce((s, c) => s + c.limit_amount, 0)
+    used.value = filteredTransactions.value.filter(tx => tx.category_id && tx.category_id.type === 'income').reduce((s, tx) => s + tx.amount, 0)
+    remaining.value = Math.abs(total.value - used.value)
   } else {
-    total.value = expenseCategories.value.reduce((sum, category) => sum + category.limit_amount, 0);
-    used.value = transactions.value
-      .filter(tx => tx.category_id && tx.category_id.type === 'expense')
-      .reduce((sum, tx) => sum + tx.amount, 0);
-    remaining.value = total.value - used.value;
-    progress.value = total.value > 0 ? ((used.value / total.value) * 100).toFixed(2) : 0;
+    total.value = expenseCategories.value.reduce((s, c) => s + c.limit_amount, 0)
+    used.value = filteredTransactions.value.filter(tx => tx.category_id && tx.category_id.type === 'expense').reduce((s, tx) => s + tx.amount, 0)
+    remaining.value = total.value - used.value
   }
-  if(progress.value === 'NaN' || !progress.value) {
-    progress.value = 0;
-  }
+  const pct = total.value > 0 ? (used.value / total.value) * 100 : 0
+  progress.value = isFinite(pct) ? pct.toFixed(2) : 0
 }
 
 // Helpers to build daily percentage line chart for current month
 const getTxDate = (tx) => new Date(tx?.date || tx?.createdAt)
 
 const buildLineChartData = () => {
-  const now = new Date()
-  const month = now.getMonth()
+  const month = selectedMonth.value
   const year = now.getFullYear()
   const daysInMonth = new Date(year, month + 1, 0).getDate()
 
   const labels = Array.from({ length: daysInMonth }, (_, i) => `${i + 1}/${month + 1}`)
   const daySums = Array.from({ length: daysInMonth }, () => ({ income: 0, expense: 0 }))
 
-  transactions.value.forEach((tx) => {
+  filteredTransactions.value.forEach((tx) => {
     if (!tx?.category_id) return
     const d = getTxDate(tx)
     if (isNaN(d)) return
-    if (d.getMonth() !== month || d.getFullYear() !== year) return
     const idx = d.getDate() - 1
     if (tx.category_id.type === 'income') daySums[idx].income += Number(tx.amount) || 0
     if (tx.category_id.type === 'expense') daySums[idx].expense += Number(tx.amount) || 0

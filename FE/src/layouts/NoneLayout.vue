@@ -1,9 +1,11 @@
 <template>
+    <Toasts />
     <router-view></router-view>
 </template>
 
 <script setup>
 import { onMounted } from 'vue'
+import Toasts from '../components/Toasts.vue'
 
 onMounted(() => {
   //set theme

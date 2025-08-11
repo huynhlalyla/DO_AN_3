@@ -20,7 +20,7 @@
                                 </div>
                                 <!-- Brand Name -->
                                 <div>
-                                    <h1 class="text-2xl font-bold text-white tracking-tight">MoneyManager</h1>
+                                    <h1 class="text-2xl font-bold text-white tracking-tight">MONA</h1>
                                     <p class="text-blue-200 text-sm font-medium">Quản lý tài chính thông minh</p>
                                 </div>
                             </div>
@@ -37,11 +37,28 @@
                             </router-link>
                             
                             <!-- Menu Button -->
-                            <button class="p-3 bg-white/10 hover:bg-white/20 rounded-lg backdrop-blur-sm transition-all duration-300 border border-white/20 hover:border-white/30">
+                                                                                    <div class="relative">
+                                                                                    <button ref="menuButtonRef" @click.stop="toggleMenu" class="p-3 bg-white/10 hover:bg-white/20 rounded-lg backdrop-blur-sm transition-all duration-300 border border-white/20 hover:border-white/30 focus:outline-none focus:ring-2 focus:ring-white/40">
                                 <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                                 </svg>
                             </button>
+                                <teleport to="body">
+                                    <transition name="fade" mode="out-in">
+                                        <div v-if="menuOpen" ref="menuRef" :style="menuStyles" class="fixed w-56 origin-top-right bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl ring-1 ring-black/5 p-2 z-[9999] backdrop-blur-sm">
+                                            <div class="py-1 text-sm">
+                                                <router-link @click="closeMenu" :to="{ name: 'HomePage' }" class="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200">Trang chủ</router-link>
+                                                <router-link @click="closeMenu" :to="{ name: 'TransactionsPage' }" class="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200">Giao dịch</router-link>
+                                                <router-link @click="closeMenu" :to="{ name: 'CategoriesPage' }" class="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200">Danh mục</router-link>
+                                                <router-link @click="closeMenu" :to="{ name: 'BudgetsPage' }" class="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200">Ngân sách</router-link>
+                                                <router-link @click="closeMenu" :to="{ name: 'CategoriesAddPage' }" class="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200">Thêm danh mục</router-link>
+                                                <router-link @click="closeMenu" :to="{ name: 'ReportsPage' }" class="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200">Báo cáo</router-link>
+                                                <router-link @click="closeMenu" :to="{ name: 'SearchResultsPage' }" class="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200">Tìm kiếm</router-link>
+                                            </div>
+                                        </div>
+                                    </transition>
+                                </teleport>
+                            </div>
                         </div>
                     </div>
                 </header>
@@ -79,13 +96,14 @@
                                         </div>
                                     </div>
                                     <input 
-                                        v-model="amountSelected"
-                                        type="number" 
+                                        :value="amountDisplay"
+                                        @input="onAmountInput"
+                                        inputmode="numeric"
+                                        autocomplete="off"
                                         id="amount-input" 
                                         required
-                                        min="1"
-                                        class="w-full pl-16 pr-4 py-4 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-lg font-medium"
-                                        placeholder="0">
+                                        class="w-full pl-16 pr-4 py-4 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-lg font-medium tracking-wide"
+                                        placeholder="0"/>
                                 </div>
                             </div>
 
@@ -198,7 +216,7 @@
                             </div>
 
                             <!-- Submit Button -->
-                            <div class="pt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="pt-4 grid grid-cols-1 gap-4">
                                 <button 
                                     @click.prevent="formSubmit"
                                     type="submit"
@@ -208,26 +226,8 @@
                                     </svg>
                                     <span>Thêm giao dịch</span>
                                 </button>
-                                
-                                <!-- VNPay Payment Button -->
-                                <router-link 
-                                    to="/bank-payment"
-                                    class="w-full py-4 bg-gradient-to-r from-blue-500 via-purple-600 to-pink-600 text-white font-bold rounded-xl shadow-lg transition-all duration-300 flex items-center justify-center space-x-3 hover:from-blue-600 hover:via-purple-700 hover:to-pink-700 hover:shadow-xl transform hover:scale-[1.02]">
-                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
-                                    </svg>
-                                    <span>Thanh toán VNPay</span>
-                                </router-link>
                             </div>
-                            <div :class="[
-                                {
-                                    'bg-green-50 border-green-200 text-green-800 border': message.type === 'success',
-                                    'bg-red-50 border-red-200 text-red-800 border': message.type === 'error'
-                                },
-                                'p-4 rounded-lg mb-4'
-                            ]" v-if="message">
-                                {{ message.content }}
-                            </div>
+                            <!-- Inline message removed in favor of global toast -->
                         </form>
                     </section>
                 </div>
@@ -286,13 +286,18 @@
                     
                     <!-- Categories Grid -->
                     <div class="space-y-4">
-                        <!-- Expense Categories - Dữ liệu giả -->
                         <div class="space-y-3">
-                            <div v-for="category in categoriesWithType" class="bg-white dark:bg-slate-800 rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-500 group">
+                <div v-for="category in categoriesWithType" :key="category._id" @click="selectCategory(category)" class="relative bg-white dark:bg-slate-800 rounded-xl p-4 shadow-md transition-all duration-300 cursor-pointer border group"
+                                :class="[
+                                    isCategorySelected(category._id)
+                                        ? 'ring-2 ring-blue-500 border-blue-400 dark:border-blue-500 shadow-lg scale-[1.02]'
+                    : 'border-slate-200 dark:border-slate-700 hover:shadow-lg hover:border-blue-300 dark:hover:border-blue-500 hover:scale-[1.01]'
+                                ]">
                                 <div class="flex items-center justify-between mb-3">
                                     <div class="flex items-center space-x-3">
                                         <div :style="{backgroundColor: category.color}" :class="[
-                                            'w-10 h-10 rounded-lg flex items-center justify-center text-white shadow-sm group-hover:scale-110 transition-transform'
+                                            'w-10 h-10 rounded-lg flex items-center justify-center text-white shadow-sm transition-transform',
+                                            isCategorySelected(category._id) ? 'scale-110' : 'group-hover:scale-110'
                                         ]">
                                             <span v-html="icons[category.icon].icon"></span>
                                         </div>
@@ -306,12 +311,8 @@
                                         <p class="text-xs text-slate-500 dark:text-slate-400">{{ solveData(category._id).percentage }}</p>
                                     </div>
                                 </div>
-                                <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
-                                    <div :style="{backgroundColor: category.color, width: solveData(category._id).percentage }" :class="[
-                                        'h-full transition-all duration-300 ease-in-out',
-                                    ]">
-                                        <div class="absolute inset-0 bg-white/20 animate-pulse"></div>
-                                    </div>
+                                <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 overflow-hidden relative">
+                                    <div :style="{backgroundColor: category.color, width: solveData(category._id).percentage }" class="h-full transition-all duration-300 ease-in-out"></div>
                                 </div>
                             </div>                            
                         </div>
@@ -359,10 +360,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, computed } from 'vue'
+import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '../composables/useAuth'
 import { getTransactions, addTransaction } from '../composables/useTransactionAPI'
+import { useToast } from '../composables/useToast'
 import { getCategories, getCategoriesByType } from '../composables/useCategoryAPI'
 import { icons } from '../composables/useIcons'
 const { initAuth } = useAuth()
@@ -370,20 +372,63 @@ const router = useRouter()
 
 
 const typeTarget = ref('expense') // Loại giao dịch mặc định là chi tiêu
+const pendingCategoryId = ref('') // Giữ category được chọn khi chuyển type
 
 const transactionsData = ref([])
 const categoriesWithType = ref([])
 const categories = ref([])
 
-const amountSelected = ref(0)
+const amountSelected = ref(0) // numeric value for submit & validation
+const amountDisplay = ref('') // formatted string shown in the input
 const dateSelected = ref(new Date().toISOString().split('T')[0]) // Lấy ngày hiện tại
 const notesSelected = ref('')
 const categorySelected = ref('')
+const isSubmitting = ref(false)
 
-const message = ref({
-    content: '',
-    type: '' 
-});
+const { push: pushToast } = useToast()
+
+// Menu navigation state & handlers
+const menuOpen = ref(false)
+const menuRef = ref(null)
+const menuButtonRef = ref(null)
+const menuStyles = ref({ top: '0px', left: '0px' })
+const computeMenuPosition = () => {
+    if(!menuButtonRef.value) return
+    const rect = menuButtonRef.value.getBoundingClientRect()
+    const width = 224 // w-56
+    menuStyles.value = {
+        top: `${rect.bottom + 8}px`,
+        left: `${Math.min(rect.right - width, window.innerWidth - width - 8)}px`
+    }
+}
+const toggleMenu = () => { menuOpen.value = !menuOpen.value; if(menuOpen.value) { computeMenuPosition() } }
+const closeMenu = () => { menuOpen.value = false }
+const onClickOutside = (e) => {
+    if(!menuOpen.value) return
+    if(menuRef.value && !menuRef.value.contains(e.target) && !menuButtonRef.value.contains(e.target)) menuOpen.value = false
+}
+const onKey = (e) => { if(e.key === 'Escape') closeMenu() }
+const onResize = () => { if(menuOpen.value) computeMenuPosition() }
+onMounted(() => { document.addEventListener('click', onClickOutside); window.addEventListener('keydown', onKey); window.addEventListener('resize', onResize) })
+onUnmounted(() => { document.removeEventListener('click', onClickOutside); window.removeEventListener('keydown', onKey); window.removeEventListener('resize', onResize) })
+
+function formatNumber(val){
+    if(val === null || val === undefined || val === '' || isNaN(val)) return ''
+    const num = Number(val)
+    if(!isFinite(num)) return ''
+    return num.toLocaleString('vi-VN')
+}
+
+function onAmountInput(e){
+    const raw = (e.target.value || '').replace(/[^0-9]/g,'')
+    if(raw === ''){
+        amountSelected.value = 0
+        amountDisplay.value = ''
+    } else {
+        amountSelected.value = Number(raw)
+        amountDisplay.value = formatNumber(raw)
+    }
+}
 
 // Khởi tạo auth state khi component mount
 onMounted( async () => {
@@ -391,6 +436,8 @@ onMounted( async () => {
     await loadTransactions();
     await loadCategories();
     await loadCategoriesByType(typeTarget.value);
+    // init formatted display
+    amountDisplay.value = amountSelected.value ? formatNumber(amountSelected.value) : ''
 })
 const loadTransactions = async () => {
   try {
@@ -406,11 +453,23 @@ const loadTransactions = async () => {
     transactionsData.value = []
   }
 }
+const isCategoryActive = (cat) => {
+    if(!cat) return false
+    if(!cat.end_date) return true
+    const end = new Date(cat.end_date)
+    return end.getTime() >= Date.now()
+}
 const loadCategoriesByType = async (type) => {
   try {
     const response = await getCategoriesByType(type);
     if (response.status === 'success') {
-      categoriesWithType.value = response.data.data;
+            categoriesWithType.value = response.data.data.filter(isCategoryActive);
+            // Nếu vừa chuyển type và có pendingCategoryId thì set lại
+            if(pendingCategoryId.value){
+                                const found = categoriesWithType.value.find(c => c._id === pendingCategoryId.value)
+                if(found) categorySelected.value = pendingCategoryId.value
+                pendingCategoryId.value = ''
+            }
     } else {
       console.error('Failed to load categories by type:', response.message)
     }
@@ -422,7 +481,7 @@ const loadCategories = async () => {
   try {
     const response = await getCategories();
     if (response.status === 'success') {
-      categories.value = response.data.data;
+            categories.value = response.data.data.filter(isCategoryActive);
     } else {
       console.error('Failed to load categories:', response.message)
     }
@@ -461,45 +520,100 @@ function solveData(category_id) {
 }
 
 function formSubmit() {
-    if (amountSelected.value <= 0) {
-        message.value.content = 'Số tiền giao dịch phải lớn hơn 0';
-        message.value.type = 'error';
-        return;
+    if (isSubmitting.value) return
+
+    const errors = []
+    if (amountSelected.value === null || amountSelected.value === undefined || amountSelected.value === '') {
+        errors.push('• Chưa nhập số tiền')
+    } else if (Number(amountSelected.value) <= 0) {
+        errors.push('• Số tiền phải > 0')
     }
-    if (!categorySelected.value) {
-        message.value.content = 'Vui lòng chọn danh mục giao dịch';
-        message.value.type = 'error';
-        return;
+    if (!categorySelected.value) errors.push('• Chưa chọn danh mục')
+    if (!dateSelected.value) errors.push('• Chưa chọn ngày')
+    // Optional: basic note length constraint
+    if (notesSelected.value && notesSelected.value.length > 200) errors.push('• Ghi chú tối đa 200 ký tự')
+
+    console.log(errors);
+
+    // Warn if exceed category remaining limit (soft warning, not blocking)
+    if (categorySelected.value) {
+        const cat = categories.value.find(c => c._id === categorySelected.value)
+        if (cat) {
+            const spentInCat = transactionsData.value
+                .filter(tx => tx.category_id._id === categorySelected.value)
+                .reduce((s, tx) => s + tx.amount, 0)
+            if (Number(amountSelected.value) > 0 && (spentInCat + Number(amountSelected.value)) > cat.limit_amount) {
+                // Only push warning if no other blocking errors, we'll surface as separate toast
+                if (errors.length === 0) {
+                    pushToast('Vượt hạn mức danh mục (sẽ vẫn lưu)', 'warn')
+                }
+            }
+        }
     }
 
-  const newTransaction = {
-    amount: amountSelected.value,
-    date: dateSelected.value,
-    note: notesSelected.value,
-    category_id: categorySelected.value,
-    user_id: useAuth().user.value._id // Lấy user ID từ auth state
-  }
-
-  addTransaction(newTransaction).then(response => {
-    if (response.status === 'success') {
-      message.value.content = 'Thêm giao dịch thành công!';
-      message.value.type = 'success';
-
-      setTimeout(() => {
-        message.value.content = '';
-        message.value.type = '';
-        router.push('/transactions'); // Chuyển hướng về trang quản lý giao dịch
-      }, 2000);
-    } else {
-      console.error('Failed to add transaction:', response.message)
+    if (errors.length > 0) {
+        // Gửi từng lỗi dưới dạng toast riêng
+        pushToast(errors, 'error')
+        return
     }
-  })
+
+    // Ghép ngày được chọn với thời gian hiện tại (giờ/phút/giây) theo múi giờ local
+    // Lý do: gửi chuỗi dạng 'YYYY-MM-DD' lên server sẽ bị parse thành UTC 00:00 => hiển thị lệch +07:00 (07:00 sáng)
+    // Cách này đảm bảo thời gian lưu phản ánh thời điểm tạo giao dịch (hoặc tối thiểu là thời điểm submit) thay vì luôn 07:00.
+    const now = new Date()
+    const [y,m,d] = dateSelected.value.split('-').map(Number)
+    const combinedDate = new Date(y, m - 1, d, now.getHours(), now.getMinutes(), now.getSeconds()) // local time
+
+    const newTransaction = {
+        amount: amountSelected.value,
+        date: combinedDate, // gửi object Date, backend mongoose sẽ lưu đúng múi giờ (ISO UTC) nhưng hiển thị sẽ quy đổi chuẩn
+        note: notesSelected.value,
+        category_id: categorySelected.value,
+        user_id: useAuth().user.value._id // Lấy user ID từ auth state
+    }
+
+    isSubmitting.value = true
+    addTransaction(newTransaction)
+        .then(response => {
+            if (response.status === 'success') {
+                pushToast('Thêm giao dịch thành công', 'success')
+                // Reset form (giữ type & categories)
+                amountSelected.value = 0
+                amountDisplay.value = ''
+                notesSelected.value = ''
+                // Optional: stay or redirect
+                setTimeout(() => router.push('/transactions'), 600)
+            } else {
+                pushToast('Không thể thêm giao dịch', 'error')
+            }
+        })
+        .catch(() => pushToast('Lỗi kết nối máy chủ', 'error'))
+        .finally(() => { isSubmitting.value = false })
 }
 
 
-watch(typeTarget, async (newType) => {
-  await loadCategoriesByType(newType);
+watch(typeTarget, async (newType, oldType) => {
+    // Nếu đổi loại chủ động (không phải do selectCategory kích hoạt pending) thì reset chọn
+    if(!pendingCategoryId.value){
+            categorySelected.value = ''
+    }
+    await loadCategoriesByType(newType);
+    // Sau khi load, nếu có pending thì sẽ được xử lý trong loadCategoriesByType (giữ) -> không reset nữa
 });
+
+function selectCategory(cat){
+    if(!cat) return
+    // Nếu chọn category khác loại hiện tại: chuyển type rồi chờ load
+    if(cat.type && cat.type !== typeTarget.value){
+        pendingCategoryId.value = cat._id
+        typeTarget.value = cat.type
+    } else {
+        categorySelected.value = cat._id
+    }
+    pushToast(`Đã chọn danh mục: ${cat.name}`,'info',2000)
+}
+
+const isCategorySelected = (id) => id === categorySelected.value
 
 const formatCurrency = (value) => {
   return new Intl.NumberFormat('vi-VN', {

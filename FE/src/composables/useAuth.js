@@ -10,10 +10,10 @@ const isAuthenticated = ref(false)
 export const useAuth = () => {
     const router = useRouter()
     
-    // Khởi tạo trạng thái từ localStorage
+    // Khởi tạo trạng thái từ sessionStorage (đăng nhập chỉ tồn tại trong phiên trình duyệt)
     const initAuth = () => {
-        const userData = localStorage.getItem('user')
-        const authStatus = localStorage.getItem('isAuthenticated')
+        const userData = sessionStorage.getItem('user')
+        const authStatus = sessionStorage.getItem('isAuthenticated')
         
         if (userData && authStatus === 'true') {
             user.value = JSON.parse(userData)
@@ -53,16 +53,16 @@ export const useAuth = () => {
     const login = (userData) => {
         user.value = userData
         isAuthenticated.value = true
-        localStorage.setItem('user', JSON.stringify(userData))
-        localStorage.setItem('isAuthenticated', 'true')
+        sessionStorage.setItem('user', JSON.stringify(userData))
+        sessionStorage.setItem('isAuthenticated', 'true')
     }
     
     // Đăng xuất
     const logout = () => {
         user.value = null
         isAuthenticated.value = false
-        localStorage.removeItem('user')
-        localStorage.removeItem('isAuthenticated')
+        sessionStorage.removeItem('user')
+        sessionStorage.removeItem('isAuthenticated')
         router.push('/auth/login')
     }
     
@@ -70,7 +70,7 @@ export const useAuth = () => {
     const updateUser = (partial) => {
         if (!user.value) return
         user.value = { ...user.value, ...partial }
-        localStorage.setItem('user', JSON.stringify(user.value))
+        sessionStorage.setItem('user', JSON.stringify(user.value))
     }
     
     // Khởi tạo khi load
