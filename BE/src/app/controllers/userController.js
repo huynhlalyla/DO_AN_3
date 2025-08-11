@@ -1,4 +1,5 @@
 const Users = require('../models/Users');
+const nodemailer = require('nodemailer');
 // Thêm người dùng
 const addUser = async (req, res) => {
     try {
@@ -53,7 +54,7 @@ const authenticateUser = async (req, res) => {
 // Đăng ký người dùng
 const registerUser = async (req, res) => {
     try {
-        const { phone, email, password } = req.body;
+        const { phone, email, password, name } = req.body;
         // Kiểm tra nếu người dùng đã tồn tại (theo phone hoặc email)
         const existingUser = await Users.findOne({
             $or: [{ phone }, { email }]
@@ -68,7 +69,7 @@ const registerUser = async (req, res) => {
             }
         }
         // Nếu chưa tồn tại, tạo người dùng mới
-        const newUser = new Users({ phone, email, password });
+        const newUser = new Users({ phone, email, password, name });
         await newUser.save();
         return res.json({ type: 'success', message: 'Đăng ký thành công!' });
     } catch (error) {
@@ -138,7 +139,6 @@ const updateUserProfile = async (req, res) => {
         if (!user) {
             return res.status(404).json({ status: 404, message: 'User not found' });
         }
-
         // Cập nhật thông tin người dùng
         user.name = name;
         user.email = email;
@@ -150,6 +150,109 @@ const updateUserProfile = async (req, res) => {
     }
 };
 
+// Yêu cầu OTP đặt lại mật khẩu (moved to module scope)
+const requestPasswordReset = async (req, res) => {
+    try {
+        const { email } = req.body;
+        if(!email) return res.status(400).json({ status: 400, message: 'Thiếu email' });
+        const user = await Users.findOne({ email });
+        if(!user) return res.status(200).json({ type: 'warn', message: 'Email không tồn tại' });
+
+        const otp = Math.floor(1000 + Math.random() * 9000).toString();
+        const expires = new Date(Date.now() + 5 * 60 * 1000);
+        user.resetOtp = otp;
+        user.resetOtpExpires = expires;
+        // Clear previous session token if any
+        user.resetSessionToken = null;
+        user.resetSessionExpires = null;
+        await user.save();
+
+        // Send email via centralized mailer
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: 'jienrury007@gmail.com',
+                pass: 'sgcx wciz qyzd gdua'
+            }
+        });
+        try {
+            await transporter.sendMail({
+                from: 'jienrury007@gmail.com',
+                to: email,
+                subject: 'Mã OTP đặt lại mật khẩu',
+                text: `Mã OTP của bạn là ${otp}. Hết hạn sau 5 phút.`,
+                html: `<p>Mã OTP của bạn là <b style="font-size:20px;">${otp}</b></p><p>OTP hết hạn vào: ${expires.toLocaleString()}</p>`
+            });
+        } catch(mailErr){
+            console.error('Send mail error', mailErr);
+            return res.json({ type:'error', message:'Không gửi được email. Liên hệ hỗ trợ.' });
+        }
+
+        return res.json({ type: 'success', message: 'Đã gửi OTP (kiểm tra email)', expiresAt: expires });
+    } catch (error) {
+        console.error('requestPasswordReset error', error);
+        return res.status(500).json({ status: 500, message: 'Lỗi máy chủ' });
+    }
+};
+
+// Xác thực OTP -> cấp phiên reset (không đổi mật khẩu)
+const verifyResetOtp = async (req, res) => {
+    try {
+        const { email, otp } = req.body;
+        if(!email || !otp) return res.status(400).json({ status:400, message:'Thiếu dữ liệu'});
+        const user = await Users.findOne({ email });
+        if(!user || !user.resetOtp || !user.resetOtpExpires){
+            return res.json({ type:'warn', message:'Không tìm thấy yêu cầu đặt lại'});
+        }
+        if(user.resetOtpExpires < new Date()){
+            return res.json({ type:'warn', message:'OTP đã hết hạn'});
+        }
+        if(user.resetOtp !== otp){
+            return res.json({ type:'warn', message:'OTP không đúng'});
+        }
+        // Tạo reset session token (simple random) với cùng thời hạn OTP
+        const token = Math.random().toString(36).slice(2, 12);
+        user.resetSessionToken = token;
+        user.resetSessionExpires = user.resetOtpExpires; // same expiry
+        await user.save();
+        return res.json({ type:'success', message:'Xác thực OTP thành công', token, expiresAt: user.resetSessionExpires });
+    } catch (error) {
+        console.error('verifyResetOtp error', error);
+        return res.status(500).json({ status:500, message:'Lỗi máy chủ'});
+    }
+};
+
+// Đặt lại mật khẩu bằng reset session token
+const resetPasswordWithToken = async (req, res) => {
+    try {
+        const { email, token, newPassword } = req.body;
+        if(!email || !token || !newPassword){
+            return res.status(400).json({ status:400, message:'Thiếu dữ liệu'});
+        }
+        const user = await Users.findOne({ email });
+        if(!user || !user.resetSessionToken || !user.resetSessionExpires){
+            return res.json({ type:'warn', message:'Phiên đặt lại không hợp lệ'});
+        }
+        if(user.resetSessionExpires < new Date()){
+            return res.json({ type:'warn', message:'Phiên đặt lại đã hết hạn'});
+        }
+        if(user.resetSessionToken !== token){
+            return res.json({ type:'warn', message:'Token không hợp lệ'});
+        }
+        user.password = newPassword;
+        // Clear all reset fields
+        user.resetOtp = null;
+        user.resetOtpExpires = null;
+        user.resetSessionToken = null;
+        user.resetSessionExpires = null;
+        await user.save();
+        return res.json({ type:'success', message:'Đặt lại mật khẩu thành công' });
+    } catch (error) {
+        console.error('resetPasswordWithToken error', error);
+        return res.status(500).json({ status:500, message:'Lỗi máy chủ'});
+    }
+};
+
 module.exports = {
     addUser,
     authenticateUser,
@@ -157,5 +260,8 @@ module.exports = {
     changePassword,
     updateUserProfile,
     loginUser,
-    getAllUsers
+    getAllUsers,
+    requestPasswordReset,
+    verifyResetOtp,
+    resetPasswordWithToken
 };

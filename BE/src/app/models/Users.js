@@ -19,6 +19,22 @@ const User = new Schema({
     name: {
         type: String, 
         default: 'User'
+    },
+    resetOtp: {
+        type: String,
+        default: null
+    },
+    resetOtpExpires: {
+        type: Date,
+        default: null
+    },
+    resetSessionToken: {
+        type: String,
+        default: null
+    },
+    resetSessionExpires: {
+        type: Date,
+        default: null
     }
 }, {
     timestamps: true

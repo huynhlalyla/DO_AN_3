@@ -29,4 +29,10 @@ const Transaction = new Schema({
     timestamps: true
 });
 
+//dùng cho thanh tìm kiếm
+Transaction.index(
+  { note: 'text' },
+  { name: 'transaction_text_idx', default_language: 'none' }
+);
+
 module.exports = mongoose.model('Transaction', Transaction);

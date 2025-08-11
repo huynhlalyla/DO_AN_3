@@ -14,7 +14,7 @@ const getCategoriesByType = async (req, res) => {
     try {
         const userId = req.query.user; // Get user ID from query parameters
         const { type } = req.params;
-        const categories = await Categories.find({ type });
+        const categories = await Categories.find({ type, user_id: userId });
         res.status(200).json({ status: 'success', data: categories });
     } catch (error) {
         res.status(500).json({ error: 'An error occurred while fetching categories by type.' });
@@ -30,9 +30,11 @@ const createCategory = async (req, res) => {
             icon,
             color,
             limit_amount,
-            user_id
+            user_id,
+            start_date,
+            end_date
         } = req.body;
-
+        console.log({ name, type, description, icon, color, limit_amount, user_id });
         // const name = 'Đầu tư';
         // const type = 'income';
         // const description = 'Lợi nhuận từ đầu tư';
@@ -47,19 +49,33 @@ const createCategory = async (req, res) => {
         }
 
         // Simulate database operation
-        const newCategory = {
+        // Dates handling
+        let finalStart = start_date ? new Date(start_date) : new Date();
+        let finalEnd;
+        if (end_date) {
+            finalEnd = new Date(end_date);
+        } else {
+            finalEnd = new Date(finalStart);
+            finalEnd.setMonth(finalEnd.getMonth() + 1);
+        }
+        if(finalEnd < finalStart){
+            // auto-correct by setting end = start + 1 month
+            finalEnd = new Date(finalStart);
+            finalEnd.setMonth(finalEnd.getMonth() + 1);
+        }
+        const category = new Categories({
             name,
             type,
             description,
             icon,
             color,
             limit_amount,
+            start_date: finalStart,
+            end_date: finalEnd,
             user_id
-        };
-        const category = new Categories(newCategory);
+        });
         await category.save();
-
-        res.status(201).json({ status: 'success', data: newCategory });
+        res.status(201).json({ status: 'success', data: category });
     } catch (error) {
         res.status(500).json({ error: error });
     }
@@ -68,29 +84,29 @@ const editCategory = async (req, res) => {
     try {
         const { id } = req.params;
         const { name, type, description, icon, color, limit_amount } = req.body
+        console.log({ id, name, type, description, icon, color, limit_amount });
         // Validate required fields
         if(!id) {
             return res.status(400).json({ error: 'Category ID is required.' });
         }
-        if (!name || !type || !limit_amount || !description || !icon || !color) {
-            return res.status(400).json({ error: 'At least one field (name, type, limit_amount) is required for update.' });
-        }
+        //chỉ cập nhật khi dữ liệu thật sự thay đổi, ít nhất một trường
+        const updatedFields = {};
+        if (name) updatedFields.name = name;
+        if (type) updatedFields.type = type;
+        if (description) updatedFields.description = description;
+        if (icon) updatedFields.icon = icon;
+        if (color) updatedFields.color = color;
+        if (limit_amount) updatedFields.limit_amount = limit_amount;
 
         // Simulate database operation
-        const updatedCategory = await Categories.findByIdAndUpdate(id, {
-            name,
-            type,
-            description,
-            icon,
-            color,
-            limit_amount
-        }, { new: true });
+        const updatedCategory = await Categories.findByIdAndUpdate(id, updatedFields, { new: true });
 
         if (!updatedCategory) {
             return res.status(404).json({ error: 'Category not found.' });
         }
 
-        res.status(200).json({ status: 'success', data: updatedCategory });
+        return res.status(200).json({ status: 'success', data: updatedCategory });
+
     } catch (error) {
         res.status(500).json({ error: error });
     }
