@@ -10,13 +10,13 @@
               <path clip-rule="evenodd" fill-rule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"></path>
             </svg>
           </button>
-          <a href="/" class="flex ms-2 md:me-24 items-center space-x-3">
+          <a href="/" class="flex lg:flex-row ms-2 md:me-24 items-center space-x-3">
             <div class="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-500 rounded-xl p-2 shadow-lg">
               <img src="/imgs/main-logo.jpg" class="w-full h-full object-cover rounded-lg" alt="Logo" />
             </div>
             <div>
               <span class="text-xl font-bold text-white tracking-tight">MONA</span>
-              <p class="text-blue-200 text-xs font-medium">Quản lý tài chính của bạn.</p>
+              <p class="text-blue-200 text-xs font-medium lg:block hidden">Quản lý tài chính của bạn.</p>
             </div>
           </a>
         </div>
@@ -39,7 +39,7 @@
 
           <div class="flex items-center ms-3">
             <!-- Add Transaction Button -->
-            <router-link to="/transactions/add" class="flex items-center space-x-2 px-4 py-2 bg-green-600/90 hover:bg-green-700/90 text-white rounded-lg backdrop-blur-sm transition-all duration-300 border border-green-500/30 hover:border-green-400/50 mr-4">
+            <router-link to="/transactions/add" class="lg:flex hidden items-center space-x-2 px-4 py-2 bg-green-600/90 hover:bg-green-700/90 text-white rounded-lg backdrop-blur-sm transition-all duration-300 border border-green-500/30 hover:border-green-400/50 mr-4">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
               </svg>
