@@ -13,7 +13,7 @@
                 <header class="relative z-10 w-full bg-gradient-to-r from-purple-900/95 via-blue-800/95 to-indigo-900/95 backdrop-blur-md p-6 shadow-2xl border-b border-white/10">
                     <div class="flex justify-between items-center max-w-6xl mx-auto">
                         <!-- Left Side - Logo & Brand -->
-                        <router-link to="/" class="flex items-center space-x-4">
+                        <router-link to="/" class="flex items-center space-x-4 lg:mx-0 mx-2">
                             <div class="flex items-center space-x-3">
                                 <!-- Logo -->
                                 <div class="w-12 h-12 bg-gradient-to-br from-purple-400 to-blue-500 rounded-xl p-2 shadow-lg">
@@ -22,7 +22,7 @@
                                 <!-- Brand Name -->
                                 <div>
                                     <h1 class="text-2xl font-bold text-white tracking-tight">MONA</h1>
-                                    <p class="text-purple-200 text-sm font-medium">Quản lý tài chính thông minh</p>
+                                    <p class="text-purple-200 text-sm font-medium lg:block hidden">Quản lý tài chính thông minh</p>
                                 </div>
                             </div>
                         </router-link>
@@ -34,7 +34,7 @@
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                                 </svg>
-                                <span class="font-medium">Quản lý danh mục</span>
+                                <span class="lg:text-md text-sm">Quản lý danh mục</span>
                             </router-link>
                             
                             <!-- Menu Button with dropdown -->
@@ -152,7 +152,7 @@
                                 </label>
                                 
                                 <!-- Icon Grid -->
-                                <div class="flex flex-wrap gap-3">
+                                <div class="flex flex-wrap lg:gap-3 gap-2">
                                     <!-- Food Icon - Selected -->
                                     <button 
                                         @click="selectedIcon = icon.name"
