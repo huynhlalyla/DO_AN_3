@@ -125,9 +125,9 @@
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93s3.05-7.44 7-7.93v15.86zm2-15.86c1.03.13 2 .45 2.87.93H13v-.93zM13 7h5.24c.25.31.48.65.68 1H13V7zm0 3h6.74c.08.33.15.66.19 1H13v-1zm0 9.93V19h2.87c-.87.48-1.84.8-2.87.93z"/>
                 </svg>
               </div>
-              <div class="bg-slate-50 dark:bg-slate-700 rounded-2xl rounded-tl-md px-4 py-3 shadow-lg border border-slate-200 dark:border-slate-600">
-                <p class="text-sm text-slate-800 dark:text-white whitespace-pre-wrap">{{ memory.content }}</p>
-              </div>
+          <div class="bg-slate-50 dark:bg-slate-700 rounded-2xl rounded-tl-md px-4 py-3 shadow-lg border border-slate-200 dark:border-slate-600 prose dark:prose-invert max-w-none">
+            <div class="text-sm text-slate-800 dark:text-white" v-html="mdToHtml(memory.content)"></div>
+          </div>
             </div>
           </div>
           <div v-if="loading" class="flex gap-2 items-center text-xs text-slate-500 dark:text-slate-400">
@@ -201,21 +201,35 @@
 </template>
 
 <script setup>
-import { ref, nextTick, onMounted, computed } from 'vue';
+import { ref, nextTick, onMounted, computed, watch } from 'vue';
 import { getCategories } from '../composables/useCategoryAPI';
 import { getTransactions } from '../composables/useTransactionAPI';
 import axios from 'axios';
+import { useChatStore } from '../composables/useChatStore';
+import { marked } from 'marked';
+import DOMPurify from 'dompurify';
 
 
 const url = 'http://192.168.65.1:1234/v1/chat/completions';
 const model = 'google/gemma-3-12b';
 const categories = ref([]);
 const transactions = ref([]);
-const chatMemories = ref([]);
+const { chatMemories, loading, sendChat: sendChatFromStore, clear: clearStore, hydrateIfNeeded } = useChatStore();
 const userInput = ref('');
-const loading = ref(false);
 const messagesEl = ref(null);
 const trimmedInput = computed(()=> userInput.value.trim());
+// Render assistant Markdown safely to HTML
+const mdToHtml = (text) => {
+  try {
+    const raw = marked.parse(text || '');
+    return DOMPurify.sanitize(raw);
+  } catch (_) {
+    return (text || '').toString();
+  }
+};
+
+// Local storage key for persisting last chat
+const STORAGE_KEY = 'chatbot:lastConversation'; // kept for backward compatibility but store handles persistence
 
 function autoScroll(){
   nextTick(()=> { if(messagesEl.value){ messagesEl.value.scrollTop = messagesEl.value.scrollHeight; } });
@@ -243,7 +257,6 @@ const solveCategories = (categories) => {
 const solveTransactions = (transactions) => {
   const response = transactions.map(transaction => {
     return {
-      name: transaction.name,
       amount: transaction.amount,
       category: transaction.category_id.name,
       date: transaction.date || '',
@@ -251,7 +264,7 @@ const solveTransactions = (transactions) => {
     }
   })
   const format = response.map((transaction, index) => {
-    return `Giao dịch ${index + 1}: Tên: ${transaction.name}, Số tiền: ${transaction.amount}, Danh mục: ${transaction.category}, Ngày: ${transaction.date}, Mô tả: ${transaction.description}`;
+    return `Giao dịch ${index + 1}: Số tiền: ${transaction.amount}, Danh mục: ${transaction.category}, Ngày: ${transaction.date}, Mô tả: ${transaction.description}`;
   })
   return format.join('\n');
 }
@@ -295,6 +308,9 @@ const hinds = [
 onMounted(async () => {
   await loadCategories();
   await loadTransactions();
+  hydrateIfNeeded();
+  await nextTick();
+  autoScroll();
   console.log('Data loaded - Categories:', categories.value.length, 'Transactions:', transactions.value.length);
 });
 
@@ -311,7 +327,7 @@ const reloadData = async () => {
 
 const clearChat = () => {
   if (confirm('Bạn có chắc chắn muốn xóa toàn bộ cuộc trò chuyện?')) {
-    chatMemories.value = [];
+  clearStore();
   }
 };
 
@@ -350,35 +366,11 @@ function buildContext(){
 
 const sendChat = async (url, message) => {
   if(!message) return;
-  chatMemories.value.push({ role:'user', content: message });
+  const baseContext = buildContext();
+  // Delegate to store (continues running even if component unmounts)
+  sendChatFromStore({ url, model, baseContext, message });
+  await nextTick();
   autoScroll();
-  loading.value = true;
-  try {
-    const baseContext = buildContext();
-    const history = chatMemories.value.slice(-12).map(m => ({ role: m.role, content: m.content }));
-    const response = await axios.post(url, {
-      model,
-      messages: [
-        { role: 'system', content: 'Bạn là một trợ lý AI tài chính. Luôn dùng dữ liệu cung cấp để phân tích & đề xuất. Nếu thiếu dữ liệu hãy hỏi lại.' },
-        { role: 'system', content: baseContext },
-        ...history
-      ],
-      temperature: 0.7,
-      max_tokens: -1,
-      stream: false
-    });
-    if(response && response.data){
-      chatMemories.value.push({ role:'assistant', content: response.data.choices[0].message.content });
-    } else {
-      chatMemories.value.push({ role:'assistant', content: 'Không nhận được phản hồi từ máy chủ AI.' });
-    }
-  } catch(e){
-    console.error('Chat error', e);
-    chatMemories.value.push({ role:'assistant', content: 'Đã xảy ra lỗi khi gọi AI.' });
-  } finally {
-    loading.value = false;
-    autoScroll();
-  }
 };
 
 function handleSend(){
@@ -394,6 +386,9 @@ function expand(e){
 }
 
 onMounted(()=> autoScroll());
+
+// Store already persists; keep scroll synced on change
+watch(chatMemories, () => nextTick().then(autoScroll), { deep: true });
 
 </script>
 
